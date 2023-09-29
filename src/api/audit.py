@@ -18,6 +18,7 @@ def get_inventory():
     """ """
     with db.engine.begin() as connection:
         numPotions = connection.execute(sqlalchemy.text("SELECT num_red_potions FROM global_inventory"))
+        numPotions = numPotions.scalar()
         mLTotal = connection.execute(sqlalchemy.text("SELECT num_red_ml FROM global_inventory"))
         gold = connection.execute(sqlalchemy.text("SELECT gold FROM global_inventory"))
         
