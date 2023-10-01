@@ -42,7 +42,7 @@ def get_bottle_plan():
         result = connection.execute(sqlalchemy.text("SELECT num_red_ml FROM global_inventory"))
         numMl = result.scalar()
         
-    if numMl > 100:
+    if numMl >= 100:
         return [{
             "potion_type": [100, 0, 0, 0],
             "quantity": 1,

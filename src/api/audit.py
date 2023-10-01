@@ -20,7 +20,9 @@ def get_inventory():
         numPotions = connection.execute(sqlalchemy.text("SELECT num_red_potions FROM global_inventory"))
         numPotions = numPotions.scalar()
         mLTotal = connection.execute(sqlalchemy.text("SELECT num_red_ml FROM global_inventory"))
+        mLTotal = mLTotal.scalar()
         gold = connection.execute(sqlalchemy.text("SELECT gold FROM global_inventory"))
+        gold = gold.scalar()
         
     return {"number_of_potions": numPotions, "ml_in_barrels": mLTotal, "gold": gold}
 
