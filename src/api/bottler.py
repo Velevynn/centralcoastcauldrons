@@ -49,10 +49,10 @@ def get_bottle_plan():
         }]
 
     # Initial logic: bottle all barrels into red potions.
-
-    return [
-            {
-                "potion_type": [100, 0, 0, 0],
-                "quantity": 0,
-            }
-        ]
+    else:
+        return [
+                {
+                    "potion_type": [100, 0, 0, 0],
+                    "quantity": 0,
+                }
+            ]
