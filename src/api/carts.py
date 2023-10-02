@@ -16,7 +16,7 @@ class NewCart(BaseModel):
     customer: str
 
 #TODO:
-#
+# Create dictionary to track cart-ids.
 
 @router.post("/")
 def create_cart(new_cart: NewCart):
