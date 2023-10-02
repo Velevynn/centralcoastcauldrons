@@ -49,9 +49,9 @@ def get_wholesale_purchase_plan(wholesale_catalog: list[Barrel]):
     
     with db.engine.begin() as connection:
         result = connection.execute(sqlalchemy.text("SELECT num_red_potions FROM global_inventory"))
-        numPotions = result.scalar();
+        numPotions = result.scalar()
         result = connection.execute(sqlalchemy.text("SELECT gold FROM globa_inventory"))
-        gold = numPotions
+        gold = result.scalar()
 
 
     if numPotions < 10 and gold >= 100:
