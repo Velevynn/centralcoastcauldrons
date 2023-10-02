@@ -15,6 +15,8 @@ router = APIRouter(
 class NewCart(BaseModel):
     customer: str
 
+#TODO:
+#
 
 @router.post("/")
 def create_cart(new_cart: NewCart):

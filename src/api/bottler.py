@@ -21,8 +21,8 @@ def post_deliver_bottles(potions_delivered: list[PotionInventory]):
     print(potions_delivered)
     
     with db.engine.begin() as connection:
-        result = connection.execute(sqlalchemy.text("UPDATE num_red_ml SET num_red_ml-100"))
-        result = connection.execute(sqlalchemy.text("UPDATE num_red_potions SET num_red_potions+1"))
+        connection.execute(sqlalchemy.text("UPDATE num_red_ml SET num_red_ml-100"))
+        connection.execute(sqlalchemy.text("UPDATE num_red_potions SET num_red_potions+1"))
 
     return "OK"
 
