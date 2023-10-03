@@ -19,8 +19,10 @@ class NewCart(BaseModel):
 # Create dictionary to track cart-ids.
 # cart-id is key
 # cart class (containing shopping info) is value
-
+global cartDict
 cartDict = {}
+global counter
+counter = 0
 
 class Cart():
     def __new__(cls, *args, **kwargs):
@@ -31,24 +33,33 @@ class Cart():
         self.cart_id = cart_id
         self.items = items
         self.checkout = checkout
+        
+    def __repr__(self):
+        return f"Cart(customer={self.customer}, id={self.id}, items={self.items})"
 
 @router.post("/")
 def create_cart(new_cart: NewCart):
     """ """
+    
     # create cart
     # add it to cartDict
     # return cartID
-    hashID = hash(new_cart.customer)
-    cartDict[hashID] = Cart(new_cart.customer, hashID, [[]], 0)
+    # hashID = hash(new_cart.customer)
+    global cartDict
+    global counter
+    counter += 1
+    cartDict[counter] = [new_cart.customer, counter, [], 0]
     
-    return {"cart_id": hashID}
+    return {"cart_id": counter}
 
 
 @router.get("/{cart_id}")
 def get_cart(cart_id: int):
     """ """
     # use cart_id as key to get cart object instance from cartDict
-    return {cart_id: cartDict.get(cart_id)}
+    # return cartDict
+    global cartDict
+    return {cart_id: cartDict[cart_id]}
 
 
 class CartItem(BaseModel):
@@ -62,9 +73,11 @@ def set_item_quantity(cart_id: int, item_sku: str, cart_item: CartItem):
     cartPair = get_cart(cart_id)
     cart = cartPair.get(cart_id)
     # modify items list to add item name and quantities
-    cart.items.append([item_sku, cart_item])
+    cart[2].append([item_sku, cart_item])
     
-    return "OK"
+    
+    return cart
+    #return "OK"
 
 
 class CartCheckout(BaseModel):
@@ -73,14 +86,15 @@ class CartCheckout(BaseModel):
 @router.post("/{cart_id}/checkout")
 def checkout(cart_id: int, cart_checkout: CartCheckout):
     # get cart from cart_id
-    cart = get_cart(cart_id)
+    cartPair = get_cart(cart_id)
+    cart = cartPair.get(cart_id)
     # convert payment string to int
     payment = int(cart_checkout.payment)
     
     # iterate through cart item list and add up total potion quantity
     quantity = 0
-    for item in cart.items:
-        quantity += item[1]
+    for item in cart[2]:
+        quantity += item[1].quantity
     
     # multiply quantity by cost
     cost = quantity * 50
@@ -88,10 +102,12 @@ def checkout(cart_id: int, cart_checkout: CartCheckout):
     if payment >= cost:
         with db.engine.begin() as connection:
             currPotions = connection.execute(sqlalchemy.text(f"SELECT num_red_potions FROM global_inventory"))
+            currPotions = currPotions.scalar()
             finalPotions = currPotions - quantity
             connection.execute(sqlalchemy.text(f"UPDATE global_inventory SET num_red_potions = {finalPotions}"))
             
             currGold = connection.execute(sqlalchemy.text(f"SELECT gold FROM global_inventory"))
+            currGold = currGold.scalar()
             finalGold = currGold + cost
             connection.execute(sqlalchemy.text(f"UPDATE global_inventory SET gold = {finalGold}"))
             

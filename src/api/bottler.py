@@ -19,10 +19,22 @@ class PotionInventory(BaseModel):
 def post_deliver_bottles(potions_delivered: list[PotionInventory]):
     """ """
     print(potions_delivered)
+    newPotions = 0
+    lostMl = 0
+    
+    for potion in potions_delivered:
+        newPotions += potion.quantity
+        lostMl += potion.quantity * 100
     
     with db.engine.begin() as connection:
-        connection.execute(sqlalchemy.text("UPDATE global_inventory SET num_red_ml= num_red_ml-100"))
-        connection.execute(sqlalchemy.text("UPDATE global_inventory SET num_red_potions = num_red_potions+1"))
+        currMl = connection.execute(sqlalchemy.text(f"SELECT num_red_ml FROM global_inventory"))
+        currPotions = connection.execute(sqlalchemy.text(f"SELECT num_red_potions FROM global_inventory"))
+        
+        currMl = currMl - lostMl
+        currPotions = currPotions + newPotions
+        
+        connection.execute(sqlalchemy.text(f"UPDATE global_inventory SET num_red_ml = {currMl}"))
+        connection.execute(sqlalchemy.text(f"UPDATE global_inventory SET num_red_potions = {currPotions}"))
 
     return "OK"
 
