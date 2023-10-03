@@ -76,8 +76,8 @@ def set_item_quantity(cart_id: int, item_sku: str, cart_item: CartItem):
     cart[2].append([item_sku, cart_item])
     
     
-    return cart
-    #return "OK"
+    #return cart
+    return "OK"
 
 
 class CartCheckout(BaseModel):
