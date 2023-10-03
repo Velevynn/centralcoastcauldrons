@@ -36,8 +36,8 @@ def post_deliver_barrels(barrels_delivered: list[Barrel]):
             numMl += (barrel.ml_per_barrel) * barrel.quantity
             numGold -= barrel.price * barrel.quantity
             
-        connection.execute(sqlalchemy.text('UPDATE global_inventory SET num_red_ml = numMl'))
-        connection.execute(sqlalchemy.text('UPDATE global_inventory SET gold = numGold'))
+        connection.execute(sqlalchemy.text(f'UPDATE global_inventory SET num_red_ml = {numMl}'))
+        connection.execute(sqlalchemy.text(f'UPDATE global_inventory SET gold = {numGold}'))
         
     return "OK"
 
@@ -53,8 +53,11 @@ def get_wholesale_purchase_plan(wholesale_catalog: list[Barrel]):
         result = connection.execute(sqlalchemy.text("SELECT gold FROM global_inventory"))
         gold = result.scalar()
 
+    for barrel in wholesale_catalog:
+        if barrel.sku == "SMALL_RED_BARREL":
+            price = barrel.price
 
-    if numPotions < 10 and gold >= 100:
+    if numPotions < 10 and gold >= price:
         return [{
             "sku": "SMALL_RED_BARREL",
             "quantity": 1,
