@@ -100,11 +100,14 @@ def checkout(cart_id: int, cart_checkout: CartCheckout):
     cost = quantity * 50
     
     if payment >= cost:
+        del cartDict[cart_id]
         with db.engine.begin() as connection:
             currPotions = connection.execute(sqlalchemy.text(f"SELECT num_red_potions FROM global_inventory"))
             currPotions = currPotions.scalar()
+            
             if currPotions <= 0:
                 return {"total_potions_bought": 0, "total_gold_paid": 0}
+            
             finalPotions = currPotions - quantity
             connection.execute(sqlalchemy.text(f"UPDATE global_inventory SET num_red_potions = {finalPotions}"))
             

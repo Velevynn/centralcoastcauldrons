@@ -28,7 +28,9 @@ def post_deliver_bottles(potions_delivered: list[PotionInventory]):
     
     with db.engine.begin() as connection:
         currMl = connection.execute(sqlalchemy.text(f"SELECT num_red_ml FROM global_inventory"))
+        currMl = currMl.scalar()
         currPotions = connection.execute(sqlalchemy.text(f"SELECT num_red_potions FROM global_inventory"))
+        currPotions = currPotions.scalar()
         
         currMl = currMl - lostMl
         currPotions = currPotions + newPotions
