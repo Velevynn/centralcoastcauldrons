@@ -11,6 +11,11 @@ def get_catalog():
     """
     Each unique item combination must have only a single price.
     """
+    
+    with db.engine.begin() as connection:
+        currPotions = connection.execute(sqlalchemy.text(f"SELECT num_red_potions FROM global_inventory"))
+        if currPotions <= 0:
+            return []
 
     # Can return a max of 20 items.
 
