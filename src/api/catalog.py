@@ -14,7 +14,7 @@ def get_catalog():
     
     with db.engine.begin() as connection:
         currPotions = connection.execute(sqlalchemy.text(f"SELECT num_red_potions FROM global_inventory"))
-        if currPotions <= 0:
+        if currPotions.scalar() <= 0:
             return []
 
     # Can return a max of 20 items.
