@@ -88,8 +88,6 @@ def checkout(cart_id: int, cart_checkout: CartCheckout):
     # get cart from cart_id
     cartPair = get_cart(cart_id)
     cart = cartPair.get(cart_id)
-    # convert payment string to int
-    payment = int(cart_checkout.payment)
     
     # iterate through cart item list and add up total potion quantity
     quantity = 0
@@ -99,35 +97,19 @@ def checkout(cart_id: int, cart_checkout: CartCheckout):
     # multiply quantity by cost
     cost = quantity * 50
     
-    if payment >= cost:
-        del cartDict[cart_id]
-        with db.engine.begin() as connection:
-            currPotions = connection.execute(sqlalchemy.text(f"SELECT num_red_potions FROM global_inventory"))
-            currPotions = currPotions.scalar()
-            
-            if currPotions <= 0:
-                return {"total_potions_bought": 0, "total_gold_paid": 0}
-            
-            finalPotions = currPotions - quantity
-            connection.execute(sqlalchemy.text(f"UPDATE global_inventory SET num_red_potions = {finalPotions}"))
-            
-            currGold = connection.execute(sqlalchemy.text(f"SELECT gold FROM global_inventory"))
-            currGold = currGold.scalar()
-            finalGold = currGold + cost
-            connection.execute(sqlalchemy.text(f"UPDATE global_inventory SET gold = {finalGold}"))
-            
+    with db.engine.begin() as connection:
+        currPotions = connection.execute(sqlalchemy.text(f"SELECT num_red_potions FROM global_inventory"))
+        currPotions = currPotions.scalar()
+        
+        if currPotions <= 0:
+            return {"total_potions_bought": 0, "total_gold_paid": 0}
+        
+        finalPotions = currPotions - quantity
+        connection.execute(sqlalchemy.text(f"UPDATE global_inventory SET num_red_potions = {finalPotions}"))
+        
+        currGold = connection.execute(sqlalchemy.text(f"SELECT gold FROM global_inventory"))
+        currGold = currGold.scalar()
+        finalGold = currGold + cost
+        connection.execute(sqlalchemy.text(f"UPDATE global_inventory SET gold = {finalGold}"))
+        
         return {"total_potions_bought": quantity, "total_gold_paid": cost}
-    
-    return {"total_potions_bought": 0, "total_gold_paid": 0}
-    
-    # with db.engine.begin() as connection:
-    #     numPotions = connection.execute(sqlalchemy.text("SELECT num_red_potions FROM global_inventory"))
-    #     numPotions = numPotions.scalar()
-        
-    #     if numPotions < 1:
-    #         return {"total_potions_bought": 0, "total_gold_paid": 0}
-        
-    #     connection.execute(sqlalchemy.text("UPDATE global_inventory SET gold = gold+150"))
-    #     connection.execute(sqlalchemy.text("UPDATE global_inventory SET num_red_potions = num_red_potions-1"))
-    
-    # return {"total_potions_bought": 1, "total_gold_paid": 150}
