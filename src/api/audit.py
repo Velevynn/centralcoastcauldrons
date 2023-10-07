@@ -30,7 +30,7 @@ def get_inventory():
         
         gold = fr.gold
         
-    return {"number_of_potions": [redPot, greenPot, bluePot], "ml_in_barrels": [redMl, greenMl, blueMl], "gold": gold}
+    return {"number_of_potions": (redMl + greenMl + blueMl), "ml_in_barrels": (redMl + greenMl + blueMl), "gold": gold}
 
 
 class Result(BaseModel):

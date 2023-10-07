@@ -73,8 +73,11 @@ def get_wholesale_purchase_plan(wholesale_catalog: list[Barrel]):
 
     # implement personal logic to decide which type of barrels to buy and their sizes
     # buy barrel of the potion you have the least of
+    redMMl = float('inf')
+    greenMMl = float('inf')
+    blueMMl = float('inf')
     
-    
+    mediumCatalog = False
     
     buyBarrels = []
     
@@ -91,12 +94,15 @@ def get_wholesale_purchase_plan(wholesale_catalog: list[Barrel]):
         if barrel.sku == "MEDIUM_RED_BARREL":
             redMPrice = barrel.price
             redMMl = barrel.ml_per_barrel
+            mediumCatalog = True
         if barrel.sku == "MEDIUM_GREEN_BARREL":
             greenMPrice = barrel.price
             greenMMl = barrel.ml_per_barrel
+            mediumCatalog = True
         if barrel.sku == "MEDIUM_BLUE_BARREL":
             blueMPrice = barrel.price
             blueMMl = barrel.ml_per_barrel
+            mediumCatalog = True
     
     SRB = {
                 "sku": "SMALL_RED_BARREL",
@@ -132,7 +138,7 @@ def get_wholesale_purchase_plan(wholesale_catalog: list[Barrel]):
             min = 'b'
         match min:
             case 'r':
-                if gold >= redMPrice:
+                if mediumCatalog is True and gold >= redMPrice:
                     if MRB in buyBarrels:
                         if MRB['quantity'] == 10:
                             return buyBarrels
@@ -151,7 +157,7 @@ def get_wholesale_purchase_plan(wholesale_catalog: list[Barrel]):
                     gold -= redSPrice
                     redMl += redSMl
             case 'g':
-                if gold >= greenMPrice:
+                if mediumCatalog is True and gold >= greenMPrice:
                     if MGB in buyBarrels:
                         if MGB['quantity'] == 10:
                             return buyBarrels
@@ -170,7 +176,7 @@ def get_wholesale_purchase_plan(wholesale_catalog: list[Barrel]):
                     gold -= greenSPrice
                     greenMl += greenSMl
             case 'b':
-                if gold >= blueMPrice:
+                if mediumCatalog is True and gold >= blueMPrice:
                     if MBB in buyBarrels:
                         if MBB['quantity'] == 10:
                             return buyBarrels
