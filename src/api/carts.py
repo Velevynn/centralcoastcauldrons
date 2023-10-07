@@ -73,8 +73,13 @@ def set_item_quantity(cart_id: int, item_sku: str, cart_item: CartItem):
     cartPair = get_cart(cart_id)
     cart = cartPair.get(cart_id)
     # modify items list to add item name and quantities
-    cart[2].append([item_sku, cart_item])
-    
+            
+    if any(item[0] == item_sku for item in cart[2]):
+        for item in cart[2]:
+            if item[0] == item_sku:
+                item[1].quantity += cart_item.quantity
+    else:
+        cart[2].append([item_sku, cart_item])
     
     #return cart
     return "OK"
@@ -90,26 +95,58 @@ def checkout(cart_id: int, cart_checkout: CartCheckout):
     cart = cartPair.get(cart_id)
     
     # iterate through cart item list and add up total potion quantity
-    quantity = 0
-    for item in cart[2]:
-        quantity += item[1].quantity
-    
-    # multiply quantity by cost
-    cost = quantity * 50
-    
     with db.engine.begin() as connection:
-        currPotions = connection.execute(sqlalchemy.text(f"SELECT num_red_potions FROM global_inventory"))
-        currPotions = currPotions.scalar()
+        result = connection.execute(sqlalchemy.text("SELECT num_red_potions, num_green_potions, num_blue_potions, gold FROM global_inventory"))
+        fr = result.first()
         
-        if currPotions <= 0:
-            return {"total_potions_bought": 0, "total_gold_paid": 0}
+        currRed = fr.num_red_potions
+        currGreen = fr.num_green_potions
+        currBlue = fr.num_blue_potions
+        currGold = fr.gold
         
-        finalPotions = currPotions - quantity
-        connection.execute(sqlalchemy.text(f"UPDATE global_inventory SET num_red_potions = {finalPotions}"))
+        redPrice = 75
+        greenPrice = 75
+        bluePrice = 100
+        sold = 0
+        newGold = 0
         
-        currGold = connection.execute(sqlalchemy.text(f"SELECT gold FROM global_inventory"))
-        currGold = currGold.scalar()
-        finalGold = currGold + cost
-        connection.execute(sqlalchemy.text(f"UPDATE global_inventory SET gold = {finalGold}"))
+        itemList = cart[2]
+    
+        for item in itemList:
+            if item[0] == "RED_POTION_0":
+                if currRed >= item[1].quantity:
+                    currRed -= item[1].quantity
+                    sold += item[1].quantity
+                    newGold += item[1].quantity * redPrice
+                else:
+                    sold += currRed
+                    newGold += currRed * redPrice
+                    currRed = 0
+                    
+            if item[0] == "GREEN_POTION_0":
+                if currGreen >= item[1].quantity:
+                    currGreen -= item[1].quantity
+                    sold += item[1].quantity
+                    newGold += item[1].quantity * greenPrice
+                else:
+                    sold += currGreen
+                    newGold += currGreen * greenPrice
+                    currGreen = 0
+                    
+            if item[0] == "BLUE_POTION_0":
+                if currBlue >= item[1].quantity:
+                    currBlue -= item[1].quantity
+                    sold += item[1].quantity
+                    newGold += item[1].quantity * bluePrice
+                else:
+                    sold += currBlue
+                    newGold += currBlue * bluePrice
+                    currBlue = 0
         
-        return {"total_potions_bought": quantity, "total_gold_paid": cost}
+        currGold += newGold
+        connection.execute(sqlalchemy.text(f"UPDATE global_inventory SET num_red_potions = {currRed}"))
+        connection.execute(sqlalchemy.text(f"UPDATE global_inventory SET num_green_potions = {currGreen}"))
+        connection.execute(sqlalchemy.text(f"UPDATE global_inventory SET num_blue_potions = {currBlue}"))
+        connection.execute(sqlalchemy.text(f"UPDATE global_inventory SET gold = {currGold}"))
+        
+        return {"total_potions_bought": sold, "total_gold_paid": newGold}

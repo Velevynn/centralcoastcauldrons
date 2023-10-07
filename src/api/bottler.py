@@ -19,24 +19,46 @@ class PotionInventory(BaseModel):
 def post_deliver_bottles(potions_delivered: list[PotionInventory]):
     """ """
     print(potions_delivered)
-    newPotions = 0
-    lostMl = 0
+    lostRed = 0
+    lostGreen = 0
+    lostBlue = 0
+    lostDark = 0
     
     for potion in potions_delivered:
-        newPotions += potion.quantity
-        lostMl += potion.quantity * 100
+        lostRed += potion.potion_type[0] * potion.quantity
+        lostGreen += potion.potion_type[1] * potion.quantity
+        lostBlue += potion.potion_type[2] * potion.quantity
+        lostDark += potion.potion_type[3] * potion.quantity
+        
+    redPot = lostRed / 100
+    greenPot = lostGreen / 100
+    bluePot = lostBlue / 100
+    
     
     with db.engine.begin() as connection:
-        currMl = connection.execute(sqlalchemy.text(f"SELECT num_red_ml FROM global_inventory"))
-        currMl = currMl.scalar()
-        currPotions = connection.execute(sqlalchemy.text(f"SELECT num_red_potions FROM global_inventory"))
-        currPotions = currPotions.scalar()
+        result = connection.execute(sqlalchemy.text("SELECT num_red_ml, num_red_potions, num_green_ml, num_green_potions, num_blue_ml, num_blue_potions FROM global_inventory"))
+        fr = result.first()
         
-        currMl = currMl - lostMl
-        currPotions = currPotions + newPotions
+        currRedMl = fr.num_red_ml
+        currGreenMl = fr.num_green_ml
+        currBlueMl = fr.num_blue_ml
+        currRedPots = fr.num_red_potions
+        currGreenPots = fr.num_green_potions
+        currBluePots = fr.num_blue_potions
         
-        connection.execute(sqlalchemy.text(f"UPDATE global_inventory SET num_red_ml = {currMl}"))
-        connection.execute(sqlalchemy.text(f"UPDATE global_inventory SET num_red_potions = {currPotions}"))
+        currRedMl -= lostRed
+        currGreenMl -= lostGreen
+        currBlueMl -= lostBlue
+        currRedPots += redPot
+        currGreenPots += greenPot
+        currBluePots += bluePot
+        
+        connection.execute(sqlalchemy.text(f"UPDATE global_inventory SET num_red_ml = {currRedMl}"))
+        connection.execute(sqlalchemy.text(f"UPDATE global_inventory SET num_red_potions = {currRedPots}"))
+        connection.execute(sqlalchemy.text(f"UPDATE global_inventory SET num_green_ml = {currGreenMl}"))
+        connection.execute(sqlalchemy.text(f"UPDATE global_inventory SET num_green_potions = {currGreenPots}"))
+        connection.execute(sqlalchemy.text(f"UPDATE global_inventory SET num_blue_ml = {currBlueMl}"))
+        connection.execute(sqlalchemy.text(f"UPDATE global_inventory SET num_blue_potions = {currBluePots}"))
 
     return "OK"
 
@@ -53,20 +75,35 @@ def get_bottle_plan():
     # Expressed in integers from 1 to 100 that must sum up to 100.
     
     with db.engine.begin() as connection:
-        result = connection.execute(sqlalchemy.text("SELECT num_red_ml FROM global_inventory"))
-        numMl = result.scalar()
+        result = connection.execute(sqlalchemy.text("SELECT num_red_ml, num_green_ml, num_blue_ml FROM global_inventory"))
+        firstRow = result.first()
         
-    if numMl >= 100:
-        return [{
-            "potion_type": [100, 0, 0, 0],
-            "quantity": 1,
-        }]
+        red = firstRow.num_red_ml // 100
+        green = firstRow.num_green_ml // 100
+        blue = firstRow.num_blue_ml // 100
 
-    # Initial logic: bottle all barrels into red potions.
-    else:
-        return [
-                {
-                    "potion_type": [100, 0, 0, 0],
-                    "quantity": 0,
-                }
-            ]
+    buyPotions = []
+    
+    if red > 0:
+        buyPotions.append({
+            "potion_type": [100, 0, 0, 0],
+            "quantity": red
+        })
+        
+    if green > 0:
+        buyPotions.append({
+            "potion_type": [0, 100, 0, 0],
+            "quantity": green
+        })
+        
+    if blue > 0:
+        buyPotions.append({
+            "potion_type": [0, 0, 100, 0],
+            "quantity": blue
+        })
+                    
+        # SELECT mL of each mL type to determine which potions to bottle
+        # calculate how many potions of each kind to bottle by appending item dictionary
+        #   to return list
+        
+    return buyPotions
