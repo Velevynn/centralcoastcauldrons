@@ -130,7 +130,7 @@ def get_wholesale_purchase_plan(wholesale_catalog: list[Barrel]):
             }
     
     #when min potion is found, add it to dictionary to buy, or increment counter if it already exists
-    while gold >= 220:
+    while (mediumCatalog is True and gold >= blueMPrice) or (mediumCatalog is False and gold >= blueSPrice):
         min = 'r'
         if greenMl < redMl:
             min = 'g'
