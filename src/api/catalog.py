@@ -21,9 +21,9 @@ def get_catalog():
         bluePotions = first_row.num_blue_potions
 
     potionTypes = {}
-    potionTypes['red'] = {'sku':'RED_POTION_0', 'name': 'red potion', 'quantity': redPotions, 'price': 75, 'potion_type': [100, 0, 0, 0]}
-    potionTypes['green'] = {'sku': 'GREEN_POTION_0', 'name': 'green_potion', 'quantity': greenPotions, 'price': 75, 'potion_type': [0, 100, 0, 0]}
-    potionTypes['blue'] = {'sku': 'BLUE_POTION_0', 'name': 'blue_potion', 'quantity': bluePotions, 'price': 100, 'potion_type': [0, 0, 100, 0]}
+    potionTypes['red'] = {'sku':'RED_POTION_0', 'name': 'red potion', 'quantity': redPotions, 'price': 50, 'potion_type': [100, 0, 0, 0]}
+    potionTypes['green'] = {'sku': 'GREEN_POTION_0', 'name': 'green_potion', 'quantity': greenPotions, 'price': 50, 'potion_type': [0, 100, 0, 0]}
+    potionTypes['blue'] = {'sku': 'BLUE_POTION_0', 'name': 'blue_potion', 'quantity': bluePotions, 'price': 75, 'potion_type': [0, 0, 100, 0]}
 
     potionCatalog = []
     for potion in potionTypes:
