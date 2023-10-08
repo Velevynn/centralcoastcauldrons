@@ -129,6 +129,11 @@ def get_wholesale_purchase_plan(wholesale_catalog: list[Barrel]):
                 "quantity": 1,
             }
     
+    mBB = {
+                "sku": "MINI_BLUE_BARREL",
+                "quantity": 1,
+            }
+    
     #when min potion is found, add it to dictionary to buy, or increment counter if it already exists
     while (mediumCatalog is True and gold >= blueMPrice) or (mediumCatalog is False and gold >= blueSPrice):
         min = 'r'
@@ -194,6 +199,12 @@ def get_wholesale_purchase_plan(wholesale_catalog: list[Barrel]):
                         buyBarrels.append(SBB)
                     gold -= blueSPrice
                     blueMl += blueSMl
+                    
+    if buyBarrels == []:
+        if gold >= 100:
+            buyBarrels.append(SRB)
+        elif gold >= 60:
+            buyBarrels.append(mBB)
                 
     return buyBarrels
     
