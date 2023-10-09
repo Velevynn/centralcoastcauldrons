@@ -104,9 +104,9 @@ def checkout(cart_id: int, cart_checkout: CartCheckout):
         currBlue = fr.num_blue_potions
         currGold = fr.gold
         
-        redPrice = 25
-        greenPrice = 25
-        bluePrice = 50
+        redPrice = 1
+        greenPrice = 1
+        bluePrice = 1
         sold = 0
         newGold = 0
         
