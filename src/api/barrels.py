@@ -143,16 +143,17 @@ def get_wholesale_purchase_plan(wholesale_catalog: list[Barrel]):
             min = 'b'
         match min:
             case 'r':
-                if mediumCatalog is True and gold >= redMPrice:
-                    if MRB in buyBarrels:
-                        if MRB['quantity'] == 10:
-                            return buyBarrels
-                        MRB['quantity'] += 1
-                    else:
-                        buyBarrels.append(MRB)
-                    gold -= redMPrice
-                    redMl += redMMl
-                elif gold >= redSPrice:
+                #if mediumCatalog is True and gold >= redMPrice:
+                #    if MRB in buyBarrels:
+                #        if MRB['quantity'] == 10:
+                #            return buyBarrels
+                #        MRB['quantity'] += 1
+                #    else:
+                #        buyBarrels.append(MRB)
+                #    gold -= redMPrice
+                #    redMl += redMMl
+                #elif gold >= redSPrice:
+                if gold >= redSPrice:
                     if SRB in buyBarrels:
                         if SRB['quantity'] == 10:
                             return buyBarrels
@@ -162,16 +163,17 @@ def get_wholesale_purchase_plan(wholesale_catalog: list[Barrel]):
                     gold -= redSPrice
                     redMl += redSMl
             case 'g':
-                if mediumCatalog is True and gold >= greenMPrice:
-                    if MGB in buyBarrels:
-                        if MGB['quantity'] == 10:
-                            return buyBarrels
-                        MGB['quantity'] += 1
-                    else:
-                        buyBarrels.append(MGB)
-                    gold -= greenMPrice
-                    greenMl += greenMMl
-                elif gold >= greenSPrice:
+                #if mediumCatalog is True and gold >= greenMPrice:
+                #    if MGB in buyBarrels:
+                #        if MGB['quantity'] == 10:
+                #            return buyBarrels
+                #        MGB['quantity'] += 1
+                #    else:
+                #        buyBarrels.append(MGB)
+                #    gold -= greenMPrice
+                #    greenMl += greenMMl
+                #elif gold >= greenSPrice:
+                if gold >= greenSPrice:
                     if SGB in buyBarrels:
                         if SGB['quantity'] == 10:
                             return buyBarrels
@@ -181,16 +183,17 @@ def get_wholesale_purchase_plan(wholesale_catalog: list[Barrel]):
                     gold -= greenSPrice
                     greenMl += greenSMl
             case 'b':
-                if mediumCatalog is True and gold >= blueMPrice:
-                    if MBB in buyBarrels:
-                        if MBB['quantity'] == 10:
-                            return buyBarrels
-                        MBB['quantity'] += 1
-                    else:
-                        buyBarrels.append(MBB)
-                    gold -= blueMPrice
-                    blueMl += blueMMl
-                elif gold >= blueSPrice:
+                #if mediumCatalog is True and gold >= blueMPrice:
+                #    if MBB in buyBarrels:
+                #        if MBB['quantity'] == 10:
+                #            return buyBarrels
+                #        MBB['quantity'] += 1
+                #    else:
+                #        buyBarrels.append(MBB)
+                #    gold -= blueMPrice
+                #    blueMl += blueMMl
+                #elif gold >= blueSPrice:
+                if gold >= blueSPrice:
                     if SBB in buyBarrels:
                         if SBB['quantity'] == 10:
                             return buyBarrels
@@ -201,9 +204,9 @@ def get_wholesale_purchase_plan(wholesale_catalog: list[Barrel]):
                     blueMl += blueSMl
                     
     if buyBarrels == []:
-        if gold >= 100:
-            buyBarrels.append(SRB)
-        elif gold >= 60:
+        # if gold >= 100:
+        #    buyBarrels.append(SRB)
+        if gold >= 60:
             buyBarrels.append(mBB)
                 
     return buyBarrels
