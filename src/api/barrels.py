@@ -26,12 +26,13 @@ def post_deliver_barrels(barrels_delivered: list[Barrel]):
     print(barrels_delivered)
     
     with db.engine.begin() as connection:
-        result = connection.execute(sqlalchemy.text("SELECT num_red_ml, num_green_ml, num_blue_ml, gold FROM global_inventory"))
+        result = connection.execute(sqlalchemy.text("SELECT num_red_ml, num_green_ml, num_blue_ml, num_dark_ml, gold FROM global_inventory"))
         fr = result.first()
         
         redMl = fr.num_red_ml
         greenMl = fr.num_green_ml
         blueMl = fr.num_blue_ml
+        darkMl = fr.num_dark_ml
         gold = fr.gold
         
         for barrel in barrels_delivered:
@@ -41,26 +42,267 @@ def post_deliver_barrels(barrels_delivered: list[Barrel]):
                 greenMl += barrel.ml_per_barrel * barrel.quantity
             elif "BLUE" in barrel.sku:
                 blueMl += barrel.ml_per_barrel * barrel.quantity
+            elif "DARK" in barrel.sku:
+                darkMl += barrel.ml_per_barrel * barrel.quantity
             gold -= barrel.quantity * barrel.price
             
             
         connection.execute(sqlalchemy.text(f'UPDATE global_inventory SET num_red_ml = {redMl}'))
         connection.execute(sqlalchemy.text(f'UPDATE global_inventory SET num_green_ml = {greenMl}'))
         connection.execute(sqlalchemy.text(f'UPDATE global_inventory SET num_blue_ml = {blueMl}'))
+        connection.execute(sqlalchemy.text(f'UPDATE global_inventory SET num_dark_ml = {darkMl}'))
         connection.execute(sqlalchemy.text(f'UPDATE global_inventory SET gold = {gold}'))
         
     return "OK"
-
-def find_min_potions(red, green, blue):
-    
-    
-    return min
 
 # Gets called once a day
 @router.post("/plan")
 def get_wholesale_purchase_plan(wholesale_catalog: list[Barrel]):
     """ """
     print(wholesale_catalog)
+    
+    # load ml, gold, and variables
+    with db.engine.begin() as connection:
+        result = connection.execute(sqlalchemy.text("SELECT num_red_ml, num_green_ml, num_blue_ml, num_dark_ml, gold, ml_in_barrels FROM global_inventory"))
+        fr = result.first()
+        
+        MlArray = [0, 0, 0, 0]
+        redMl = fr.num_red_ml
+        MlArray[0]  = fr.num_red_ml
+        greenMl = fr.num_green_ml
+        MlArray[1]  = fr.num_green_ml
+        blueMl = fr.num_blue_ml
+        MlArray[2]  = fr.num_blue_ml
+        darkMl = fr.num_dark_ml
+        MlArray[3]  = fr.num_dark_ml
+        gold = fr.gold
+        totalMl = fr.ml_in_barrels
+        
+        goldBreakpoint = 120
+        mlBreakpoint = 5000
+        buyBarrels = []
+    
+    # identify which catalog is presented, and calculate prices + quantity
+    mediumCatalog = False
+    largeCatalog = False
+    for barrel in wholesale_catalog:
+        if "SMALL" in barrel.sku:
+            if "RED" in barrel.sku:
+                redSPrice = barrel.price
+                redSMl = barrel.ml_per_barrel
+                redSQuantity = barrel.quantity
+            elif "GREEN" in barrel.sku:
+                greenSPrice = barrel.price
+                greenSMl = barrel.ml_per_barrel
+                greenSQuantity = barrel.quantity
+            elif "GREEN" in barrel.sku:
+                blueSPrice = barrel.price
+                blueSMl = barrel.ml_per_barrel
+                blueSQuantity = barrel.quantity
+            elif "DARK" in barrel.sku:
+                darkSPrice = barrel.price
+                darkSMl = barrel.ml_per_barrel
+                darkSQuantity = barrel.quantity
+        elif "MEDIUM" in barrel.sku: 
+            mediumCatalog = True
+            if "RED" in barrel.sku:
+                redMPrice = barrel.price
+                redMMl = barrel.ml_per_barrel
+                redMQuantity = barrel.quantity
+            elif "GREEN" in barrel.sku:
+                greenMPrice = barrel.price
+                greenMMl = barrel.ml_per_barrel
+                greenMQuantity = barrel.quantity
+            elif "BLUE" in barrel.sku:
+                blueMPrice = barrel.price
+                blueMMl = barrel.ml_per_barrel
+                blueMQuantity = barrel.quantity
+            elif "DARK" in barrel.sku:
+                darkMPrice = barrel.price
+                darkMMl = barrel.ml_per_barrel
+                darkMQuantity = barrel.quantity
+        elif "LARGE" in barrel.sku: 
+            largeCatalog = True
+            if "RED" in barrel.sku:
+                redLPrice = barrel.price
+                redLMl = barrel.ml_per_barrel
+                redLQuantity = barrel.quantity
+            elif "GREEN" in barrel.sku:
+                greenLPrice = barrel.price
+                greenLMl = barrel.ml_per_barrel
+                greenLQuantity = barrel.quantity
+            elif "BLUE" in barrel.sku:
+                blueLPrice = barrel.price
+                blueLMl = barrel.ml_per_barrel
+                blueLQuantity = barrel.quantity
+            elif "DARK" in barrel.sku:
+                darkLPrice = barrel.price
+                darkLMl = barrel.ml_per_barrel
+                darkLQuantity = barrel.quantity
+
+    # initialize return dictionaries
+    SRB = {"sku": "SMALL_RED_BARREL", "quantity": 1}
+    MRB = {"sku": "MEDIUM_RED_BARREL", "quantity": 1}
+    LRB = {"sku": "LARGE_RED_BARREL", "quantity": 1}
+    
+    SGB = {"sku": "SMALL_GREEN_BARREL", "quantity": 1}
+    MGB = {"sku": "MEDIUM_GREEN_BARREL","quantity": 1}
+    LGB = {"sku": "LARGE_GREEN_BARREL", "quantity": 1}
+    
+    mBB = {"sku": "MINI_BLUE_BARREL","quantity": 1}
+    SBB = {"sku": "SMALL_BLUE_BARREL","quantity": 1}
+    MBB = {"sku": "MEDIUM_BLUE_BARREL","quantity": 1}
+    LBB = {"sku": "LARGE_BLUE_BARREL","quantity": 1}
+    
+    #SDB = {"sku": "SMALL_DARK_BARREL", "quantity": 1}
+    #MDB = {"sku": "MEDIUM_DARK_BARREL", "quantity": 1}
+    LDB = {"sku": "LARGE_DARK_BARREL", "quantity": 1}
+    
+    
+    # while condition to buy is active
+    while gold >= goldBreakpoint and any([MlArray[idx] < mlBreakpoint for idx in range(len(MlArray))]):
+        # find color of lowest mL 
+        minVal = float('inf')
+        for idx in range(len(MlArray)):
+            if MlArray[idx] < minVal:
+                minVal = MlArray[idx]
+            
+        minMl = MlArray.index(minVal)
+        if minMl == 0:
+            minMl = 'r'
+        if minMl == 1:
+            minMl = 'g'
+        if minMl == 2:
+            minMl = 'b'
+        if minMl == 3:
+            minMl = 'd'
+        
+        # add highest possible barrel of min color
+        
+        match minMl:
+            case 'r':
+                    if largeCatalog is True and gold >= redLPrice and redLQuantity > 0:
+                        if LRB in buyBarrels:
+                            LRB['quantity'] += 1
+                        else:
+                            buyBarrels.append(LRB)
+                        gold -= redLPrice
+                        redMl += redLMl
+                        redLQuantity -= 1
+                        
+                    elif mediumCatalog is True and gold >= redMPrice and redMQuantity > 0:
+                        if MRB in buyBarrels:
+                            MRB['quantity'] += 1
+                        else:
+                            buyBarrels.append(MRB)
+                        gold -= redMPrice
+                        redMl += redMMl
+                        redMQuantity -= 1
+                        
+                    elif gold >= redSPrice and redSQuantity > 0:
+                        if SRB in buyBarrels:
+                            SRB['quantity'] += 1
+                        else:
+                            buyBarrels.append(SRB)
+                        gold -= redSPrice
+                        redMl += redSMl
+                        redSQuantity -= 1
+                        
+                    MlArray[0] = redMl
+                    
+            case 'g':
+                    if largeCatalog is True and gold >= greenLPrice and greenLQuantity > 0:
+                        if LGB in buyBarrels:
+                            LGB['quantity'] += 1
+                        else:
+                            buyBarrels.append(LGB)
+                        gold -= greenLPrice
+                        greenMl += greenLMl
+                        greenLQuantity -= 1
+                        
+                    elif mediumCatalog is True and gold >= greenMPrice and greenMQuantity > 0:
+                        if MGB in buyBarrels:
+                            MGB['quantity'] += 1
+                        else:
+                            buyBarrels.append(MGB)
+                        gold -= greenMPrice
+                        greenMl += greenMMl
+                        greenMQuantity -= 1
+                        
+                    elif gold >= greenSPrice and greenSQuantity > 0:
+                        if SGB in buyBarrels:
+                            SGB['quantity'] += 1
+                        else:
+                            buyBarrels.append(SGB)
+                        gold -= greenSPrice
+                        greenMl += greenSMl
+                        greenSQuantity -= 1
+                        
+                    MlArray[1] = greenMl
+                    
+            case 'b':
+                    if largeCatalog is True and gold >= blueLPrice and blueLQuantity > 0:
+                        if LBB in buyBarrels:
+                            LBB['quantity'] += 1
+                        else:
+                            buyBarrels.append(LBB)
+                        gold -= blueLPrice
+                        blueMl += blueLMl
+                        blueLQuantity -= 1
+                        
+                    if mediumCatalog is True and gold >= blueMPrice and blueMQuantity > 0:
+                        if MBB in buyBarrels:
+                            MBB['quantity'] += 1
+                        else:
+                            buyBarrels.append(MBB)
+                        gold -= blueMPrice
+                        blueMl += blueMMl
+                        blueMQuantity -= 1
+                        
+                    elif gold >= blueSPrice and blueSQuantity > 0:
+                        if SBB in buyBarrels:
+                            SBB['quantity'] += 1
+                        else:
+                            buyBarrels.append(SBB)
+                        gold -= blueSPrice
+                        blueMl += blueSMl
+                        blueSQuantity -= 1
+                        
+                    MlArray[2] = blueMl
+                    
+            case 'd':
+                    if largeCatalog is True and gold >= darkLPrice and darkLQuantity > 0:
+                        if LDB in buyBarrels:
+                            LDB['quantity'] += 1
+                        else:
+                            buyBarrels.append(LDB)
+                        gold -= darkLPrice
+                        darkMl += darkLMl
+                        darkLQuantity -= 1
+                        
+                    # elif mediumCatalog is True and gold >= darkMPrice and darkMQuantity > 0:
+                    #     if MDB in buyBarrels:
+                    #         MDB['quantity'] += 1
+                    #     else:
+                    #         buyBarrels.append(MDB)
+                    #     gold -= darkMPrice
+                    #     darkMl += darkMMl
+                    #     darkMQuantity
+                        
+                    # elif gold >= redSPrice and redSQuantity > 0:
+                    #     if SDB in buyBarrels:
+                    #         SDB['quantity'] += 1
+                    #     else:
+                    #         buyBarrels.append(SDB)
+                    #     gold -= darkSPrice
+                    #     darkMl += darkSMl
+                    #     darkSQuantity
+                    
+                    MlArray[3] = darkMl
+                
+    return buyBarrels
+                
+    #
     
     with db.engine.begin() as connection:
         result = connection.execute(sqlalchemy.text("SELECT num_red_potions, num_red_ml, num_green_potions, num_green_ml, num_blue_potions, num_blue_ml, gold FROM global_inventory"))
