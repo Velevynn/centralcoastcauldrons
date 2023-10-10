@@ -72,6 +72,7 @@ def set_item_quantity(cart_id: int, item_sku: str, cart_item: CartItem):
     cart = cartPair.get(cart_id)
     # modify items list to add item name and quantities
             
+    print(item_sku, cart_item.quantity)
     if any(item[0] == item_sku for item in cart[2]):
         for item in cart[2]:
             if item[0] == item_sku:
@@ -112,6 +113,8 @@ def checkout(cart_id: int, cart_checkout: CartCheckout):
         newGold = 0
         
         itemList = cart[2]
+        print("before")
+        print("r:", currRed, "g:", currGreen, "b:", currBlue, "gold:", currGold)
     
         for item in itemList:
             if item[0] == "RED_POTION_0":
@@ -145,10 +148,11 @@ def checkout(cart_id: int, cart_checkout: CartCheckout):
                     currBlue = 0
 
         currGold += newGold
+        print("after")
+        print("r:", currRed, "g:", currGreen, "b:", currBlue, "gold:", currGold)
         connection.execute(sqlalchemy.text(f"UPDATE global_inventory SET num_red_potions = {currRed}"))
         connection.execute(sqlalchemy.text(f"UPDATE global_inventory SET num_green_potions = {currGreen}"))
         connection.execute(sqlalchemy.text(f"UPDATE global_inventory SET num_blue_potions = {currBlue}"))
         connection.execute(sqlalchemy.text(f"UPDATE global_inventory SET gold = {currGold}"))
-        print(cart_checkout.payment)
         
         return {"total_potions_bought": sold, "total_gold_paid": newGold}

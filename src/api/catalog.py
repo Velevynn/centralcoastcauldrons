@@ -22,10 +22,10 @@ def get_catalog():
         darkPotions = first_row.num_dark_potions
 
     potionTypes = {}
-    potionTypes['red'] = {'sku':'RED_POTION_0', 'name': 'red potion', 'quantity': redPotions, 'price': 30, 'potion_type': [100, 0, 0, 0]}
-    potionTypes['green'] = {'sku': 'GREEN_POTION_0', 'name': 'green_potion', 'quantity': greenPotions, 'price': 30, 'potion_type': [0, 100, 0, 0]}
-    potionTypes['blue'] = {'sku': 'BLUE_POTION_0', 'name': 'blue_potion', 'quantity': bluePotions, 'price': 40, 'potion_type': [0, 0, 100, 0]}
-    potionTypes['dark'] = {'sku': 'DARK_POTION_0', 'name': 'dark_potion', 'quantity': darkPotions, 'price': 40, 'potion_type': [0, 0, 100, 0]}
+    potionTypes['red'] = {'sku':'RED_POTION_0', 'name': 'red potion', 'quantity': min(redPotions, 1), 'price': 30, 'potion_type': [100, 0, 0, 0]}
+    potionTypes['green'] = {'sku': 'GREEN_POTION_0', 'name': 'green_potion', 'quantity': min(greenPotions, 1), 'price': 30, 'potion_type': [0, 100, 0, 0]}
+    potionTypes['blue'] = {'sku': 'BLUE_POTION_0', 'name': 'blue_potion', 'quantity': min(bluePotions, 1), 'price': 40, 'potion_type': [0, 0, 100, 0]}
+    potionTypes['dark'] = {'sku': 'DARK_POTION_0', 'name': 'dark_potion', 'quantity': min(darkPotions, 1), 'price': 40, 'potion_type': [0, 0, 100, 0]}
 
     potionCatalog = []
     for potion in potionTypes:
