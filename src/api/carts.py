@@ -24,19 +24,6 @@ cartDict = {}
 global counter
 counter = 0
 
-class Cart():
-    def __new__(cls, *args, **kwargs):
-        return super().__new__(cls)
-    
-    def __init__(self, customer, cart_id, items, checkout):
-        self.customer = customer
-        self.cart_id = cart_id
-        self.items = items
-        self.checkout = checkout
-        
-    def __repr__(self):
-        return f"Cart(customer={self.customer}, id={self.id}, items={self.items})"
-
 @router.post("/")
 def create_cart(new_cart: NewCart):
     """ """
@@ -50,6 +37,10 @@ def create_cart(new_cart: NewCart):
     counter += 1
     cartDict[counter] = [new_cart.customer, counter, [], 0]
     
+    
+    # with db.engine.begin() as connection:
+    #     connection.execute(sqlalchemy.text(f"INSERT INTO carts (id, customer) VALUES ({counter}, {new_cart.customer})"))
+    
     return {"cart_id": counter}
 
 
@@ -59,6 +50,13 @@ def get_cart(cart_id: int):
     # use cart_id as key to get cart object instance from cartDict
     # return cartDict
     global cartDict
+    # with db.engine.begin() as connection:
+    #     result = connection.execute(sqlalchemy.text(f"SELECT id, customer FROM carts"))
+    #     fr = result.first()
+    #     id = fr.id
+        
+    #     return {cart_id: id}
+        
     return {cart_id: cartDict[cart_id]}
 
 
@@ -80,6 +78,8 @@ def set_item_quantity(cart_id: int, item_sku: str, cart_item: CartItem):
                 item[1].quantity += cart_item.quantity
     else:
         cart[2].append([item_sku, cart_item])
+        
+    
     
     #return cart
     return "OK"
@@ -91,6 +91,7 @@ class CartCheckout(BaseModel):
 @router.post("/{cart_id}/checkout")
 def checkout(cart_id: int, cart_checkout: CartCheckout):
     # get cart from cart_id
+    print(cart_checkout.payment)
     cartPair = get_cart(cart_id)
     cart = cartPair.get(cart_id)
     
@@ -104,9 +105,9 @@ def checkout(cart_id: int, cart_checkout: CartCheckout):
         currBlue = fr.num_blue_potions
         currGold = fr.gold
         
-        redPrice = 1
-        greenPrice = 1
-        bluePrice = 1
+        redPrice = 30
+        greenPrice = 30
+        bluePrice = 40
         sold = 0
         newGold = 0
         
@@ -122,7 +123,7 @@ def checkout(cart_id: int, cart_checkout: CartCheckout):
                     sold += currRed
                     newGold += currRed * redPrice
                     currRed = 0
-                    
+
             if item[0] == "GREEN_POTION_0":
                 if currGreen >= item[1].quantity:
                     currGreen -= item[1].quantity
@@ -132,7 +133,7 @@ def checkout(cart_id: int, cart_checkout: CartCheckout):
                     sold += currGreen
                     newGold += currGreen * greenPrice
                     currGreen = 0
-                    
+
             if item[0] == "BLUE_POTION_0":
                 if currBlue >= item[1].quantity:
                     currBlue -= item[1].quantity
@@ -142,11 +143,12 @@ def checkout(cart_id: int, cart_checkout: CartCheckout):
                     sold += currBlue
                     newGold += currBlue * bluePrice
                     currBlue = 0
-        
+
         currGold += newGold
         connection.execute(sqlalchemy.text(f"UPDATE global_inventory SET num_red_potions = {currRed}"))
         connection.execute(sqlalchemy.text(f"UPDATE global_inventory SET num_green_potions = {currGreen}"))
         connection.execute(sqlalchemy.text(f"UPDATE global_inventory SET num_blue_potions = {currBlue}"))
         connection.execute(sqlalchemy.text(f"UPDATE global_inventory SET gold = {currGold}"))
+        print(cart_checkout.payment)
         
         return {"total_potions_bought": sold, "total_gold_paid": newGold}
