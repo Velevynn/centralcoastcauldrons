@@ -131,6 +131,7 @@ def checkout(cart_id: int, cart_checkout: CartCheckout):
                 #     sold += currRed
                 #     newGold += currRed * redPrice
                 #     currRed = 0
+                sold += item[1].quantity
                 soldRed += item[1].quantity
                 newGold += item[1].quantity * redPrice
 
@@ -143,6 +144,7 @@ def checkout(cart_id: int, cart_checkout: CartCheckout):
                 #     sold += currGreen
                 #     newGold += currGreen * greenPrice
                 #     currGreen = 0
+                sold += item[1].quantity
                 soldGreen += item[1].quantity
                 newGold += item[1].quantity * greenPrice
 
@@ -155,6 +157,7 @@ def checkout(cart_id: int, cart_checkout: CartCheckout):
                 #     sold += currBlue
                 #     newGold += currBlue * bluePrice
                 #     currBlue = 0
+                sold += item[1].quantity
                 soldBlue += item[1].quantity
                 newGold += item[1].quantity * bluePrice
 
