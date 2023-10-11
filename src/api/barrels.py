@@ -3,6 +3,7 @@ from pydantic import BaseModel
 from src.api import auth
 import sqlalchemy
 from src import database as db
+import random
 
 
 router = APIRouter(
@@ -74,7 +75,7 @@ def get_wholesale_purchase_plan(wholesale_catalog: list[Barrel]):
                 greenSPrice = barrel.price
                 greenSMl = barrel.ml_per_barrel
                 greenSQuantity = barrel.quantity
-            elif "GREEN" in barrel.sku:
+            elif "BLUE" in barrel.sku:
                 blueSPrice = barrel.price
                 blueSMl = barrel.ml_per_barrel
                 blueSQuantity = barrel.quantity
@@ -165,19 +166,36 @@ def get_wholesale_purchase_plan(wholesale_catalog: list[Barrel]):
     while gold >= goldBreakpoint and any([MlArray[idx] < mlBreakpoint for idx in range(len(MlArray))]):
         # find color of lowest mL 
         minVal = float('inf')
-        for idx in range(len(MlArray)):
-            if MlArray[idx] < minVal:
-                minVal = MlArray[idx]
+        
+        typeList = ['r', 'g', 'b']
+        MlDict = {}
+        MlDict['r'] = MlArray[0]
+        MlDict['g'] = MlArray[1]
+        MlDict['b'] = MlArray[2]
+        if largeCatalogue is True:
+            MlDict['d'] = MlArray[3]
+            typeList.append('d')
+
+        random.shuffle(typeList)
+
+        for type in typeList:
+            if MlDict[type] < minVal:
+                minMl = type
+        
+        # for idx in range(len(MlArray)):
+        #     if MlArray[idx] < minVal:
+        #        minVal = MlArray[idx]
             
-        minMl = MlArray.index(minVal)
-        if minMl == 0:
-            minMl = 'r'
-        if minMl == 1:
-            minMl = 'g'
-        if minMl == 2:
-            minMl = 'b'
-        if minMl == 3:
-            minMl = 'd'
+            
+        #minMl = MlArray.index(minVal)
+        #if minMl == 0:
+        #    minMl = 'r'
+        #if minMl == 1:
+        #    minMl = 'g'
+        #if minMl == 2:
+        #    minMl = 'b'
+        #if minMl == 3:
+        #    minMl = 'd'
         print(minMl)
         
         # add highest possible barrel of min color
