@@ -105,6 +105,11 @@ def checkout(cart_id: int, cart_checkout: CartCheckout):
         currGreen = fr.num_green_potions
         currBlue = fr.num_blue_potions
         currGold = fr.gold
+        totalGold = currGold
+        
+        soldRed = 0
+        soldGreen = 0
+        soldBlue = 0
         
         redPrice = 30
         greenPrice = 30
@@ -118,41 +123,47 @@ def checkout(cart_id: int, cart_checkout: CartCheckout):
     
         for item in itemList:
             if item[0] == "RED_POTION_0":
-                if currRed >= item[1].quantity:
-                    currRed -= item[1].quantity
-                    sold += item[1].quantity
-                    newGold += item[1].quantity * redPrice
-                else:
-                    sold += currRed
-                    newGold += currRed * redPrice
-                    currRed = 0
+                # if currRed >= item[1].quantity:
+                #     currRed -= item[1].quantity
+                #     sold += item[1].quantity
+                #     newGold += item[1].quantity * redPrice
+                # else:
+                #     sold += currRed
+                #     newGold += currRed * redPrice
+                #     currRed = 0
+                soldRed += item[1].quantity
+                newGold += item[1].quantity * redPrice
 
             if item[0] == "GREEN_POTION_0":
-                if currGreen >= item[1].quantity:
-                    currGreen -= item[1].quantity
-                    sold += item[1].quantity
-                    newGold += item[1].quantity * greenPrice
-                else:
-                    sold += currGreen
-                    newGold += currGreen * greenPrice
-                    currGreen = 0
+                # if currGreen >= item[1].quantity:
+                #     currGreen -= item[1].quantity
+                #     sold += item[1].quantity
+                #     newGold += item[1].quantity * greenPrice
+                # else:
+                #     sold += currGreen
+                #     newGold += currGreen * greenPrice
+                #     currGreen = 0
+                soldGreen += item[1].quantity
+                newGold += item[1].quantity * greenPrice
 
             if item[0] == "BLUE_POTION_0":
-                if currBlue >= item[1].quantity:
-                    currBlue -= item[1].quantity
-                    sold += item[1].quantity
-                    newGold += item[1].quantity * bluePrice
-                else:
-                    sold += currBlue
-                    newGold += currBlue * bluePrice
-                    currBlue = 0
+                # if currBlue >= item[1].quantity:
+                #     currBlue -= item[1].quantity
+                #     sold += item[1].quantity
+                #     newGold += item[1].quantity * bluePrice
+                # else:
+                #     sold += currBlue
+                #     newGold += currBlue * bluePrice
+                #     currBlue = 0
+                soldBlue += item[1].quantity
+                newGold += item[1].quantity * bluePrice
 
-        currGold += newGold
+        totalGold += newGold
         print("after")
-        print("r:", currRed, "g:", currGreen, "b:", currBlue, "gold:", currGold)
-        connection.execute(sqlalchemy.text(f"UPDATE global_inventory SET num_red_potions = {currRed}"))
-        connection.execute(sqlalchemy.text(f"UPDATE global_inventory SET num_green_potions = {currGreen}"))
-        connection.execute(sqlalchemy.text(f"UPDATE global_inventory SET num_blue_potions = {currBlue}"))
-        connection.execute(sqlalchemy.text(f"UPDATE global_inventory SET gold = {currGold}"))
+        print("r:", currRed, "g:", currGreen, "b:", currBlue, "gold:", totalGold)
+        connection.execute(sqlalchemy.text(f"UPDATE global_inventory SET num_red_potions = num_red_potions - {soldRed}"))
+        connection.execute(sqlalchemy.text(f"UPDATE global_inventory SET num_green_potions = num_green_potions - {soldGreen}"))
+        connection.execute(sqlalchemy.text(f"UPDATE global_inventory SET num_blue_potions = num_blue_potions - {soldBlue}"))
+        connection.execute(sqlalchemy.text(f"UPDATE global_inventory SET gold = gold - {newGold}"))
         
         return {"total_potions_bought": sold, "total_gold_paid": newGold}
