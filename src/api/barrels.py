@@ -172,7 +172,7 @@ def get_wholesale_purchase_plan(wholesale_catalog: list[Barrel]):
         MlDict['r'] = MlArray[0]
         MlDict['g'] = MlArray[1]
         MlDict['b'] = MlArray[2]
-        if largeCatalogue is True:
+        if largeCatalog is True:
             MlDict['d'] = MlArray[3]
             typeList.append('d')
 
