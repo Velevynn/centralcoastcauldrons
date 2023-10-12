@@ -156,13 +156,13 @@ def get_bottle_plan():
     
     
     with db.engine.begin() as connection:
-        result = connection.execute(sqlalchemy.text("SELECT num_red_ml, num_green_ml, num_blue_ml, num_dark_ml FROM global_inventory"))
+        result = connection.execute(sqlalchemy.text("SELECT num_red_ml, num_red_potions, num_green_ml, num_green_potions, num_blue_ml, num_blue_potions, num_dark_ml, num_dark_potions FROM global_inventory"))
         firstRow = result.first()
         
-        red = firstRow.num_red_ml // 100
-        green = firstRow.num_green_ml // 100
-        blue = firstRow.num_blue_ml // 100
-        dark = firstRow.num_dark_ml // 100
+        red = min(firstRow.num_red_ml // 100, 10 - firstRow.num_red_potions)
+        green = min(firstRow.num_green_ml // 100, 10 - firstRow.num_green_potions)
+        blue = min(firstRow.num_blue_ml // 100, 10 - firstRow.num_blue_potions)
+        dark = min(firstRow.num_dark_ml // 100, 10 - firstRow.num_dark_potions)
 
     buyPotions = []
     
