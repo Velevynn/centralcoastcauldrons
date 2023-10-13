@@ -31,7 +31,7 @@ def post_deliver_bottles(potions_delivered: list[PotionInventory]):
         lostGreen += potion.potion_type[1] * potion.quantity
         lostBlue += potion.potion_type[2] * potion.quantity
         lostDark += potion.potion_type[3] * potion.quantity
-        if potion_type == [0, 50, 50, 0]:
+        if potion.potion_type == [0, 50, 50, 0]:
             tealPot += potion.quantity
         
     redPot = lostRed / 100
