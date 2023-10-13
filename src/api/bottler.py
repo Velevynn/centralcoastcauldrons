@@ -173,16 +173,16 @@ def get_bottle_plan():
         green = min(firstRow.num_green_ml // 100, max(5 - firstRow.num_green_potions, 0))
         blue = min(firstRow.num_blue_ml // 100, max(5 - firstRow.num_blue_potions, 0))
         dark = min(firstRow.num_dark_ml // 100, max(5 - firstRow.num_dark_potions, 0))
+        
+    buyPotions = []
 
-        if green >= 1 and blue >=1:
+    if green >= 1 and blue >=1:
             buyPotions.append({
                 "potion_type": [0, 50, 50, 0],
                 "quantity": 2
             })
             green -= 1
             blue -= 1
-
-    buyPotions = []
     
     if red > 0:
         buyPotions.append({
