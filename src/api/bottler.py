@@ -123,6 +123,8 @@ def get_bottle_plan():
     """
     Go from barrel to bottle.
     """
+
+    return []
     
 
     # Each bottle has a quantity of what proportion of red, blue, and
