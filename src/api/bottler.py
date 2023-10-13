@@ -67,7 +67,7 @@ def post_deliver_bottles(potions_delivered: list[PotionInventory]):
         currDarkPots += darkPot
         currTealPots += tealPot
 
-        connection.execute(sqlalchemy.text(f"UPDATE potions SET quantity = currTealPots WHERE item_sku = TEAL_POTION_0"))
+        connection.execute(sqlalchemy.text(f"UPDATE potions SET quantity = {currTealPots} WHERE potion_id = 6"))
         connection.execute(sqlalchemy.text(f"UPDATE global_inventory SET num_red_ml = {currRedMl}"))
         connection.execute(sqlalchemy.text(f"UPDATE global_inventory SET num_red_potions = {currRedPots}"))
         connection.execute(sqlalchemy.text(f"UPDATE global_inventory SET num_green_ml = {currGreenMl}"))
