@@ -146,7 +146,7 @@ def get_wholesale_purchase_plan(wholesale_catalog: list[Barrel]):
     # initialize return dictionaries
     SRB = {"sku": "SMALL_RED_BARREL", "quantity": 1, "ml_per_barrel": 500, "potion_type": [100, 0, 0, 0], "price": 100}
     MRB = {"sku": "MEDIUM_RED_BARREL", "quantity": 1, "ml_per_barrel": 2500, "potion_type": [100, 0, 0, 0], "price": 250}
-    LRB = {"sku": "LARGE_RED_BARREL", "quantity": 1, "ml_per_barrel": 10000, "potion_type": [100, 0, 0, 0], "price": 500}}
+    LRB = {"sku": "LARGE_RED_BARREL", "quantity": 1, "ml_per_barrel": 10000, "potion_type": [100, 0, 0, 0], "price": 500}
     
     SGB = {"sku": "SMALL_GREEN_BARREL", "quantity": 1, "ml_per_barrel": 500, "potion_type": [0, 100, 0, 0], "price": 100}
     MGB = {"sku": "MEDIUM_GREEN_BARREL","quantity": 1, "ml_per_barrel": 2500, "potion_type": [0, 100, 0, 0], "price": 250}
