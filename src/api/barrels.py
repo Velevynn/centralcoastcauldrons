@@ -144,22 +144,23 @@ def get_wholesale_purchase_plan(wholesale_catalog: list[Barrel]):
     
 
     # initialize return dictionaries
-    SRB = {"sku": "SMALL_RED_BARREL", "quantity": 1}
-    MRB = {"sku": "MEDIUM_RED_BARREL", "quantity": 1}
-    LRB = {"sku": "LARGE_RED_BARREL", "quantity": 1}
+    SRB = {"sku": "SMALL_RED_BARREL", "quantity": 1, "ml_per_barrel": 500, "potion_type": [100, 0, 0, 0], "price": 100}
+    MRB = {"sku": "MEDIUM_RED_BARREL", "quantity": 1, "ml_per_barrel": 2500, "potion_type": [100, 0, 0, 0], "price": 250}
+    LRB = {"sku": "LARGE_RED_BARREL", "quantity": 1, "ml_per_barrel": 10000, "potion_type": [100, 0, 0, 0], "price": 500}}
     
-    SGB = {"sku": "SMALL_GREEN_BARREL", "quantity": 1}
-    MGB = {"sku": "MEDIUM_GREEN_BARREL","quantity": 1}
-    LGB = {"sku": "LARGE_GREEN_BARREL", "quantity": 1}
+    SGB = {"sku": "SMALL_GREEN_BARREL", "quantity": 1, "ml_per_barrel": 500, "potion_type": [0, 100, 0, 0], "price": 100}
+    MGB = {"sku": "MEDIUM_GREEN_BARREL","quantity": 1, "ml_per_barrel": 2500, "potion_type": [0, 100, 0, 0], "price": 250}
+    LGB = {"sku": "LARGE_GREEN_BARREL", "quantity": 1, "ml_per_barrel": 10000, "potion_type": [0, 100, 0, 0], "price": 500}
     
-    mBB = {"sku": "MINI_BLUE_BARREL","quantity": 1}
-    SBB = {"sku": "SMALL_BLUE_BARREL","quantity": 1}
-    MBB = {"sku": "MEDIUM_BLUE_BARREL","quantity": 1}
-    LBB = {"sku": "LARGE_BLUE_BARREL","quantity": 1}
+    mBB = {"sku": "MINI_BLUE_BARREL","quantity": 1, "ml_per_barrel": 200, "potion_type": [0, 0, 100, 0], "price": 60}
+    SBB = {"sku": "SMALL_BLUE_BARREL","quantity": 1, "ml_per_barrel": 500, "potion_type": [0, 0, 100, 0], "price": 120}
+    MBB = {"sku": "MEDIUM_BLUE_BARREL","quantity": 1, "ml_per_barrel": 2500, "potion_type": [0, 0, 100, 0], "price": 300}
+    LBB = {"sku": "LARGE_BLUE_BARREL","quantity": 1, "ml_per_barrel": 10000, "potion_type": [0, 0, 100, 0], "price": 600}
     
     #SDB = {"sku": "SMALL_DARK_BARREL", "quantity": 1}
     #MDB = {"sku": "MEDIUM_DARK_BARREL", "quantity": 1}
-    LDB = {"sku": "LARGE_DARK_BARREL", "quantity": 1}
+    LDB = {"sku": "LARGE_DARK_BARREL", "quantity": 1, "ml_per_barrel": 10000, "potion_type": [0, 0, 100, 0], "price": 600}
+    
     
     count = 0
     # while condition to buy is active
