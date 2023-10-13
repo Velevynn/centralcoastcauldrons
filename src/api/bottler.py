@@ -208,6 +208,8 @@ def get_bottle_plan():
             "potion_type": [0, 0, 0, 100],
             "quantity": dark
         })
+
+    print buyPotions
                     
         # SELECT mL of each mL type to determine which potions to bottle
         # calculate how many potions of each kind to bottle by appending item dictionary
