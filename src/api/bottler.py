@@ -24,6 +24,7 @@ def post_deliver_bottles(potions_delivered: list[PotionInventory]):
     lostGreen = 0
     lostBlue = 0
     lostDark = 0
+    tealPot = 0
     
     for potion in potions_delivered:
         lostRed += potion.potion_type[0] * potion.quantity
