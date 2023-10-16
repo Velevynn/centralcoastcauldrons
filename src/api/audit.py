@@ -18,11 +18,13 @@ def get_inventory():
     """ """
     with db.engine.begin() as connection:
         result = connection.execute(sqlalchemy.text("SELECT quantity FROM potions"))
+        
         potionQuantities = result.fetchall()
+        print(potionQuantities)
         potionNum = 0
         
         for potion in potionQuantities:
-            potionNum = potion[0]
+            potionNum += potion[0]
             
         result = connection.execute(sqlalchemy.text("SELECT gold, num_red_ml, num_green_ml, num_blue_ml, num_dark_ml from global_inventory"))
         fr = result.first()
