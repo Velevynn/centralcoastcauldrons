@@ -35,12 +35,13 @@ def create_cart(new_cart: NewCart):
     """ """
     global counter
     counter += 1
+    hash = hash(new_cart.customer) + counter
     
     with db.engine.begin() as connection:
         connection.execute(sqlalchemy.text("""
                                         INSERT INTO carts (cart_id, customer)
                                         VALUES (:cart_id, :customer)"""),
-                                        [{'cart_id': counter,
+                                        [{'cart_id': hash,
                                           'customer': new_cart.customer}])
     
     return {"cart_id": counter}
@@ -207,7 +208,7 @@ def checkout(cart_id: int, cart_checkout: CartCheckout):
                                             }])
             
             totalSold += item[2]
-            goldGained += price
+            goldGained += price * item[2]
             
         connection.execute(sqlalchemy.text(
                                         """
