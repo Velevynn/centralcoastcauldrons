@@ -155,6 +155,23 @@ def checkout(cart_id: int, cart_checkout: CartCheckout):
             quantityCheck = quantityCheck.scalar()
             quantity = quantityCheck
             if item[2] > quantity:
+                connection.execute(sqlalchemy.text(
+                                        """
+                                            DELETE FROM cart_items
+                                            WHERE cart_id = :cart_id
+                                        """),
+                                        [{
+                                            'cart_id': cart_id
+                                        }])
+        
+                connection.execute(sqlalchemy.text(
+                                        """
+                                            DELETE FROM carts
+                                            WHERE cart_id = :cart_id
+                                        """),
+                                        [{
+                                            'cart_id': cart_id
+                                        }])
                 return {}
             
         for item in itemTable:
