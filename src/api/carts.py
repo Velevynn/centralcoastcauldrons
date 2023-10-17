@@ -183,11 +183,11 @@ def checkout(cart_id: int, cart_checkout: CartCheckout):
                                                 'quantity': item[2]
                                             }])
             
-            connection.execute(sqlalchemy.text(
-                                            """
-                                                INSERT INTO gold_ledger (category, change)
-                                            """
-            ))
+            # connection.execute(sqlalchemy.text(
+            #                                 """
+            #                                     INSERT INTO gold_ledger (category, change)
+            #                                 """
+            # ))
             
             totalSold += item[2]
             goldGained += price * item[2]
