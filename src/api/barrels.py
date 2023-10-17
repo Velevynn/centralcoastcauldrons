@@ -142,7 +142,7 @@ def get_wholesale_purchase_plan(wholesale_catalog: list[Barrel]):
 
         gold = fr.gold
         goldBreakpoint = 120
-        mlBreakpoint = 5000
+        mlBreakpoint = 10000
         buyBarrels = []
 
     

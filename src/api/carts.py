@@ -31,14 +31,17 @@ def create_cart(new_cart: NewCart):
     """ """
     
     with db.engine.begin() as connection:
-        connection.execute(sqlalchemy.text("""
-                                        INSERT INTO carts (customer)
-                                        VALUES (:customer)"""),
+        result = connection.execute(sqlalchemy.text(
+                                        """
+                                            INSERT INTO carts (customer)
+                                            VALUES (:customer)
+                                            RETURNING carts.cart_id
+                                        """),
                                         [{
                                           'customer': new_cart.customer
                                         }])
     
-    return {"OK"}
+    return {"cart_id": result.scalar()}
 
 
 @router.get("/{cart_id}")
@@ -179,6 +182,12 @@ def checkout(cart_id: int, cart_checkout: CartCheckout):
                                                 'price': price,
                                                 'quantity': item[2]
                                             }])
+            
+            connection.execute(sqlalchemy.text(
+                                            """
+                                                INSERT INTO gold_ledger (category, change)
+                                            """
+            ))
             
             totalSold += item[2]
             goldGained += price * item[2]
