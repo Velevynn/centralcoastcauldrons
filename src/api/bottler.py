@@ -24,7 +24,6 @@ def post_deliver_bottles(potions_delivered: list[PotionInventory]):
     lostGreen = 0
     lostBlue = 0
     lostDark = 0
-    tealPot = 0
     
     for potion in potions_delivered:
         lostRed += potion.potion_type[0] * potion.quantity
@@ -124,7 +123,7 @@ def get_bottle_plan():
                         "potion_type": [potion[1], potion[2], potion[3], potion[4]],
                         "quantity": 1
                     }
-            while all([potion[idx+1] <= totalMlTable[idx] for idx in range(len(totalMlTable))]) and currPotionQuantity < 5:
+            while all([potion[idx+1] <= totalMlTable[idx] for idx in range(len(totalMlTable))]) and currPotionQuantity < 10:
                 totalMlTable[0] -= potion[1]
                 totalMlTable[1] -= potion[2]
                 totalMlTable[2] -= potion[3]
@@ -135,7 +134,8 @@ def get_bottle_plan():
                     potionDict['quantity'] += 1
                 else:
                     buyPotions.append(potionDict)
-                            
+                           
+        print(buyPotions) 
         return buyPotions
                 
             
