@@ -33,6 +33,8 @@ def get_inventory():
         greenMl = fr.num_green_ml
         blueMl = fr.num_blue_ml
         darkMl = fr.num_dark_ml
+        
+        print(potionNum, (redMl, greenMl, blueMl, darkMl), gold)
     
         
     return {"number_of_potions": (potionNum), "ml_in_barrels": (redMl + greenMl + blueMl + darkMl), "gold": gold}
