@@ -39,21 +39,49 @@ def post_deliver_barrels(barrels_delivered: list[Barrel]):
         for barrel in barrels_delivered:
             if "RED" in barrel.sku:
                 newInvDict['red'] += barrel.ml_per_barrel * barrel.quantity
+                MlType = 'red'
             elif "GREEN" in barrel.sku:
                 newInvDict['green'] += barrel.ml_per_barrel * barrel.quantity
+                MlType = 'green'
             elif "BLUE" in barrel.sku:
                 newInvDict['blue'] += barrel.ml_per_barrel * barrel.quantity
+                MlType = 'blue'
             elif "DARK" in barrel.sku:
                 newInvDict['dark'] += barrel.ml_per_barrel * barrel.quantity
+                MlType = 'dark'
                 
             newInvDict['gold'] += barrel.quantity * barrel.price
             
+            connection.execute(sqlalchemy.text(
+                                            """
+                                                INSERT INTO gold_ledger (category, change)
+                                                VALUES (:category, :change)
+                                            """
+                                            ),
+                                            [{
+                                                'category': "Bought %d barrels of %s type" % (barrel.quantity, barrel.sku),
+                                                'change': newInvDict['gold'] // -1
+                                            }])
             
-        connection.execute(sqlalchemy.text(f'UPDATE global_inventory SET num_red_ml = :redMl'), [{'redMl': newInvDict['red']}])
-        connection.execute(sqlalchemy.text(f'UPDATE global_inventory SET num_green_ml = :greenMl'), [{'greenMl': newInvDict['green']}])
-        connection.execute(sqlalchemy.text(f'UPDATE global_inventory SET num_blue_ml = :blueMl'), [{'blueMl': newInvDict['blue']}])
-        connection.execute(sqlalchemy.text(f'UPDATE global_inventory SET num_dark_ml = :darkMl'), [{'darkMl': newInvDict['dark']}])
-        connection.execute(sqlalchemy.text(f'UPDATE global_inventory SET gold = :gold'), [{'gold': newInvDict['gold']}])
+            connection.execute(sqlalchemy.text(
+                                            """
+                                                INSERT INTO ml_ledger (ml_type, change)
+                                                VALUES (:ml_type, :change)
+                                            """
+                                            ),
+                                            [{
+                                                'ml_type': MlType,
+                                                'change': barrel.ml_per_barrel
+                                            }])
+            
+            
+        connection.execute(sqlalchemy.text(f'UPDATE global_inventory SET num_red_ml = num_red_ml + :redMl'), [{'redMl': newInvDict['red']}])
+        connection.execute(sqlalchemy.text(f'UPDATE global_inventory SET num_green_ml = num_green_ml + :greenMl'), [{'greenMl': newInvDict['green']}])
+        connection.execute(sqlalchemy.text(f'UPDATE global_inventory SET num_blue_ml = num_blue_ml + :blueMl'), [{'blueMl': newInvDict['blue']}])
+        connection.execute(sqlalchemy.text(f'UPDATE global_inventory SET num_dark_ml = num_dark_ml + :darkMl'), [{'darkMl': newInvDict['dark']}])
+        connection.execute(sqlalchemy.text(f'UPDATE global_inventory SET gold = gold - :gold'), [{'gold': newInvDict['gold']}])
+        
+        
         
     return "OK"
 
@@ -188,6 +216,7 @@ def get_wholesale_purchase_plan(wholesale_catalog: list[Barrel]):
         for type in typeList:
             if MlDict[type] < minVal:
                 minMl = type
+                minVal = MlDict[type]
 
         print(minMl)
         # add highest possible barrel of min color

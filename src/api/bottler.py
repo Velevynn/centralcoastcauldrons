@@ -32,6 +32,37 @@ def post_deliver_bottles(potions_delivered: list[PotionInventory]):
         lostDark += potion.potion_type[3] * potion.quantity
     
     with db.engine.begin() as connection:
+        for potion in potions_delivered:
+            potionIDPrice = connection.execute(sqlalchemy.text(
+                                                        """
+                                                            SELECT potion_id, price FROM potions
+                                                            WHERE red_ml = :red
+                                                            AND green_ml = :green
+                                                            AND blue_ml = :blue
+                                                            AND dark_ml = :dark
+                                                        """),
+                                                        [{
+                                                            'quantity': potion.quantity,
+                                                            'red': potion.potion_type[0],
+                                                            'green': potion.potion_type[1],
+                                                            'blue': potion.potion_type[2],
+                                                            'dark': potion.potion_type[3]
+                                                        }])
+            potionIDPrice = potionIDPrice.all()
+            
+            connection.execute(sqlalchemy.text(
+                                            """
+                                                INSERT INTO potion_ledger (potion_id, change)
+                                                VALUES (:potion_id)
+                                            """),
+                                            [{
+                                                'potion_id': potionIDPrice[0],
+                                                'change': potionIDPrice[1]
+                                            }])
+        
+        
+        
+        
         connection.execute(sqlalchemy.text("UPDATE global_inventory SET num_red_ml = num_red_ml - :lostRed"), [{'lostRed': lostRed}])
         connection.execute(sqlalchemy.text("UPDATE global_inventory SET num_green_ml = num_green_ml - :lostGreen"), [{'lostGreen': lostGreen}])
         connection.execute(sqlalchemy.text("UPDATE global_inventory SET num_blue_ml = num_blue_ml - :lostBlue"), [{'lostBlue': lostBlue}])

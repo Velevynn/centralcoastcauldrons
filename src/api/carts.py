@@ -16,8 +16,7 @@ class NewCart(BaseModel):
     customer: str
     
 class Cart:
-    def __init__(self, id, items):
-        self.id = id
+    def __init__(self, items):
         self.items = items
     
 
@@ -49,16 +48,23 @@ def get_cart(cart_id: int):
     """ """
     # use cart_id as key to get cart object instance from cartDict
     # return cartDict
-    global cartDict
     with db.engine.begin() as connection:
         result = connection.execute(sqlalchemy.text("SELECT cart_id, item_id, quantity FROM cart_items WHERE cart_id = :cart_id"), [{'cart_id': cart_id}])
         cartItemList = result.fetchall()
+        
         print(cartItemList)
         
         
-        newCart = Cart(cartItemList[0], [{'item_sku': cart[1], 'quantity': cart[2]} for cart in cartItemList])
+        itemList = []
         
-        return newCart
+        for cart in cartItemList:
+            newItemID = cart[1]
+            newItemQuantity = cart[2]
+            newItem = {newItemID: newItemQuantity}
+            itemList.append(newItem)
+        
+        print(itemList)
+        return  Cart(itemList)
         
 
 class CartItem(BaseModel):
@@ -135,20 +141,21 @@ def checkout(cart_id: int, cart_checkout: CartCheckout):
         
         
         
-        # for item in itemTable:
-        #     quantityCheck = connection.execute(sqlalchemy.text(
-        #                                         """
-        #                                             SELECT quantity
-        #                                             FROM potions
-        #                                             WHERE potion_id = :potion_id
-        #                                         """
-        #                                         ),
-        #                                         [{
-        #                                             'potion_id': item[1]
-        #                                         }])
-        #     quantityCheck = quantityCheck.scalar()
-        #     quantity = quantityCheck
-        #     if item[2] > quantity:
+        for item in itemTable:
+            quantityCheck = connection.execute(sqlalchemy.text(
+                                                """
+                                                    SELECT quantity
+                                                    FROM potions
+                                                    WHERE potion_id = :potion_id
+                                                """
+                                                ),
+                                                [{
+                                                    'potion_id': item[1]
+                                                }])
+            quantityCheck = quantityCheck.scalar()
+            quantity = quantityCheck
+            if item[2] > quantity:
+                raise Exception
                 
             
         for item in itemTable:
@@ -183,14 +190,35 @@ def checkout(cart_id: int, cart_checkout: CartCheckout):
                                                 'quantity': item[2]
                                             }])
             
-            # connection.execute(sqlalchemy.text(
-            #                                 """
-            #                                     INSERT INTO gold_ledger (category, change)
-            #                                 """
-            # ))
+            connection.execute(sqlalchemy.text(
+                                            """
+                                                INSERT INTO potion_ledger (potion_id, change)
+                                                VALUES (:potion_id, :sold)
+                                            """
+                                            ),
+                                            [{
+                                                'potion_id': item[1],
+                                                'sold': item[2] // -1
+                                            }])
+            
+            connection.execute(sqlalchemy.text(
+                                            """
+                                                INSERT INTO gold_ledger (category, change)
+                                                VALUES (:category, :goldGained)
+                                            """
+                                            ),
+                                            [{
+                                                'category': "Sold %d potions of id %d" % (item[2], item[1]),
+                                                'goldGained': price * item[2]
+                                            }])
+            
             
             totalSold += item[2]
             goldGained += price * item[2]
+            
+        
+        
+        
             
     return {"total_potions_bought": totalSold, "total_gold_paid": goldGained}
             
