@@ -82,8 +82,10 @@ def set_item_quantity(cart_id: int, item_sku: str, cart_item: CartItem):
         
         quantityCheck = connection.execute(sqlalchemy.text(
                                                 """
-                                                    SELECT quantity
+                                                    SELECT SUM (change)
                                                     FROM potions
+                                                    JOIN potion_ledger
+                                                    ON potions.potion_id = potion_ledger.potion_id
                                                     WHERE item_sku = :item_sku
                                                 """
                                                 ),
@@ -144,9 +146,11 @@ def checkout(cart_id: int, cart_checkout: CartCheckout):
         for item in itemTable:
             quantityCheck = connection.execute(sqlalchemy.text(
                                                 """
-                                                    SELECT quantity
+                                                    SELECT SUM (change)
                                                     FROM potions
-                                                    WHERE potion_id = :potion_id
+                                                    JOIN potion_ledger
+                                                    ON potions.potion_id = potion_ledger.potion_id
+                                                    WHERE potions.potion_id = :potion_id
                                                 """
                                                 ),
                                                 [{
@@ -159,17 +163,17 @@ def checkout(cart_id: int, cart_checkout: CartCheckout):
                 
             
         for item in itemTable:
-            connection.execute(sqlalchemy.text(
-                                            """
-                                                UPDATE potions
-                                                SET
-                                                quantity = quantity - :sold
-                                                WHERE potion_id = :item_id
-                                            """),
-                                            [{
-                                                'sold': item[2],
-                                                'item_id': item[1]
-                                            }])
+            # connection.execute(sqlalchemy.text(
+            #                                 """
+            #                                     UPDATE potions
+            #                                     SET
+            #                                     quantity = quantity - :sold
+            #                                     WHERE potion_id = :item_id
+            #                                 """),
+            #                                 [{
+            #                                     'sold': item[2],
+            #                                     'item_id': item[1]
+            #                                 }])
             price = connection.execute(sqlalchemy.text(
                                                     """
                                                         SELECT price
@@ -180,15 +184,15 @@ def checkout(cart_id: int, cart_checkout: CartCheckout):
                                                         'item_id': item[1]
                                                     }])
             price = price.scalar()
-            connection.execute(sqlalchemy.text(
-                                            """
-                                                UPDATE global_inventory
-                                                SET gold = gold + :price * :quantity
-                                            """),
-                                            [{
-                                                'price': price,
-                                                'quantity': item[2]
-                                            }])
+            # connection.execute(sqlalchemy.text(
+            #                                 """
+            #                                     UPDATE global_inventory
+            #                                     SET gold = gold + :price * :quantity
+            #                                 """),
+            #                                 [{
+            #                                     'price': price,
+            #                                     'quantity': item[2]
+            #                                 }])
             
             connection.execute(sqlalchemy.text(
                                             """

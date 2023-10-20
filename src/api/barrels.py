@@ -50,7 +50,7 @@ def post_deliver_barrels(barrels_delivered: list[Barrel]):
                 newInvDict['dark'] += barrel.ml_per_barrel * barrel.quantity
                 MlType = 'dark'
                 
-            newInvDict['gold'] += barrel.quantity * barrel.price
+            newInvDict['gold'] = barrel.quantity * barrel.price
             
             connection.execute(sqlalchemy.text(
                                             """
@@ -71,15 +71,15 @@ def post_deliver_barrels(barrels_delivered: list[Barrel]):
                                             ),
                                             [{
                                                 'ml_type': MlType,
-                                                'change': barrel.ml_per_barrel
+                                                'change': barrel.ml_per_barrel * barrel.quantity
                                             }])
             
             
-        connection.execute(sqlalchemy.text(f'UPDATE global_inventory SET num_red_ml = num_red_ml + :redMl'), [{'redMl': newInvDict['red']}])
-        connection.execute(sqlalchemy.text(f'UPDATE global_inventory SET num_green_ml = num_green_ml + :greenMl'), [{'greenMl': newInvDict['green']}])
-        connection.execute(sqlalchemy.text(f'UPDATE global_inventory SET num_blue_ml = num_blue_ml + :blueMl'), [{'blueMl': newInvDict['blue']}])
-        connection.execute(sqlalchemy.text(f'UPDATE global_inventory SET num_dark_ml = num_dark_ml + :darkMl'), [{'darkMl': newInvDict['dark']}])
-        connection.execute(sqlalchemy.text(f'UPDATE global_inventory SET gold = gold - :gold'), [{'gold': newInvDict['gold']}])
+        # connection.execute(sqlalchemy.text(f'UPDATE global_inventory SET num_red_ml = num_red_ml + :redMl'), [{'redMl': newInvDict['red']}])
+        # connection.execute(sqlalchemy.text(f'UPDATE global_inventory SET num_green_ml = num_green_ml + :greenMl'), [{'greenMl': newInvDict['green']}])
+        # connection.execute(sqlalchemy.text(f'UPDATE global_inventory SET num_blue_ml = num_blue_ml + :blueMl'), [{'blueMl': newInvDict['blue']}])
+        # connection.execute(sqlalchemy.text(f'UPDATE global_inventory SET num_dark_ml = num_dark_ml + :darkMl'), [{'darkMl': newInvDict['dark']}])
+        # connection.execute(sqlalchemy.text(f'UPDATE global_inventory SET gold = gold - :gold'), [{'gold': newInvDict['gold']}])
         
         
         
@@ -151,24 +151,34 @@ def get_wholesale_purchase_plan(wholesale_catalog: list[Barrel]):
                 
     # load ml, gold, and variables
     with db.engine.begin() as connection:
-        result = connection.execute(sqlalchemy.text("SELECT num_red_ml, num_green_ml, num_blue_ml, num_dark_ml, gold FROM global_inventory"))
-        fr = result.first()
-        
+        result = connection.execute(sqlalchemy.text(
+                                                """
+                                                    SELECT SUM (change)
+                                                    FROM ml_ledger
+                                                    GROUP BY ml_type
+                                                    ORDER BY ml_type
+                                                """))
+        mlTable = result.all()  
+             
         MlArray = []
+        totalMlTable = [int(str(mlTable[3]).split("'")[1]), int(str(mlTable[2]).split("'")[1]), int(str(mlTable[0]).split("'")[1]), int(str(mlTable[1]).split("'")[1])]
         
-        redMl = fr.num_red_ml
-        greenMl = fr.num_green_ml
-        blueMl = fr.num_blue_ml
-        
-        MlArray.append(redMl)
-        MlArray.append(greenMl)
-        MlArray.append(blueMl)
+        MlArray.append(totalMlTable[3])
+        MlArray.append(totalMlTable[2])
+        MlArray.append(totalMlTable[0])
         
         if largeCatalog is True:
-            darkMl = fr.num_dark_ml
-            MlArray.append(darkMl)
+            MlArray.append(totalMlTable[1])
 
-        gold = fr.gold
+        goldCursor = connection.execute(sqlalchemy.text(
+                                                """
+                                                    SELECT SUM (change)
+                                                    FROM gold_ledger
+                                                """
+                                                ))
+        
+        gold = goldCursor.scalar()
+
         goldBreakpoint = 120
         mlBreakpoint = 10000
         buyBarrels = []
@@ -195,6 +205,8 @@ def get_wholesale_purchase_plan(wholesale_catalog: list[Barrel]):
         LDB = {"sku": "LARGE_DARK_BARREL", "quantity": 1, "ml_per_barrel": darkLMl, "potion_type": [0, 0, 100, 0], "price": darkLPrice}
     
    
+    if gold < goldBreakpoint and gold >= 100:
+        return [SRB]
     
     # while condition to buy is active
     while gold >= goldBreakpoint and any([MlArray[idx] < mlBreakpoint for idx in range(len(MlArray))]):
@@ -229,7 +241,7 @@ def get_wholesale_purchase_plan(wholesale_catalog: list[Barrel]):
                     else:
                         buyBarrels.append(LRB)
                     gold -= redLPrice
-                    redMl += redLMl
+                    MlArray[0] += redLMl
                     redLQuantity -= 1
                     
                 elif mediumCatalog is True and gold >= redMPrice and redMQuantity > 0:
@@ -238,7 +250,7 @@ def get_wholesale_purchase_plan(wholesale_catalog: list[Barrel]):
                     else:
                         buyBarrels.append(MRB)
                     gold -= redMPrice
-                    redMl += redMMl
+                    MlArray[0] += redMMl
                     redMQuantity -= 1
                     
                 elif gold >= redSPrice and redSQuantity > 0:
@@ -247,11 +259,9 @@ def get_wholesale_purchase_plan(wholesale_catalog: list[Barrel]):
                     else:
                         buyBarrels.append(SRB)
                     gold -= redSPrice
-                    redMl += redSMl
+                    MlArray[0] += redSMl
                     redSQuantity -= 1
-                    
-                MlArray[0] = redMl
-                    
+                                        
             case 'g':
                 if largeCatalog is True and gold >= greenLPrice and greenLQuantity > 0:
                     if LGB in buyBarrels:
@@ -259,7 +269,7 @@ def get_wholesale_purchase_plan(wholesale_catalog: list[Barrel]):
                     else:
                         buyBarrels.append(LGB)
                     gold -= greenLPrice
-                    greenMl += greenLMl
+                    MlArray[1] += greenLMl
                     greenLQuantity -= 1
                     
                 elif mediumCatalog is True and gold >= greenMPrice and greenMQuantity > 0:
@@ -268,7 +278,7 @@ def get_wholesale_purchase_plan(wholesale_catalog: list[Barrel]):
                     else:
                         buyBarrels.append(MGB)
                     gold -= greenMPrice
-                    greenMl += greenMMl
+                    MlArray[1] += greenMMl
                     greenMQuantity -= 1
                     
                 elif gold >= greenSPrice and greenSQuantity > 0:
@@ -277,10 +287,8 @@ def get_wholesale_purchase_plan(wholesale_catalog: list[Barrel]):
                     else:
                         buyBarrels.append(SGB)
                     gold -= greenSPrice
-                    greenMl += greenSMl
+                    MlArray[1] += greenSMl
                     greenSQuantity -= 1
-                    
-                MlArray[1] = greenMl
                     
             case 'b':
                 if largeCatalog is True and gold >= blueLPrice and blueLQuantity > 0:
@@ -289,7 +297,7 @@ def get_wholesale_purchase_plan(wholesale_catalog: list[Barrel]):
                     else:
                         buyBarrels.append(LBB)
                     gold -= blueLPrice
-                    blueMl += blueLMl
+                    MlArray[2] += blueLMl
                     blueLQuantity -= 1
                     
                 if mediumCatalog is True and gold >= blueMPrice and blueMQuantity > 0:
@@ -298,7 +306,7 @@ def get_wholesale_purchase_plan(wholesale_catalog: list[Barrel]):
                     else:
                         buyBarrels.append(MBB)
                     gold -= blueMPrice
-                    blueMl += blueMMl
+                    MlArray[2] += blueMMl
                     blueMQuantity -= 1
                     
                 elif gold >= blueSPrice and blueSQuantity > 0:
@@ -307,10 +315,8 @@ def get_wholesale_purchase_plan(wholesale_catalog: list[Barrel]):
                     else:
                         buyBarrels.append(SBB)
                     gold -= blueSPrice
-                    blueMl += blueSMl
+                    MlArray[2] += blueSMl
                     blueSQuantity -= 1
-                    
-                MlArray[2] = blueMl
                     
             case 'd':
                 if largeCatalog is True and gold >= darkLPrice and darkLQuantity > 0:
@@ -319,7 +325,7 @@ def get_wholesale_purchase_plan(wholesale_catalog: list[Barrel]):
                     else:
                         buyBarrels.append(LDB)
                     gold -= darkLPrice
-                    darkMl += darkLMl
+                    MlArray[3] += darkLMl
                     darkLQuantity -= 1
                     
                 # elif mediumCatalog is True and gold >= darkMPrice and darkMQuantity > 0:
@@ -340,7 +346,6 @@ def get_wholesale_purchase_plan(wholesale_catalog: list[Barrel]):
                 #     darkMl += darkSMl
                 #     darkSQuantity
                 
-                MlArray[3] = darkMl
     return buyBarrels
     
 #[{ "sku": "MEDIUM_RED_BARREL", "ml_per_barrel": 2500, "potion_type": [1, 0, 0, 0], "price": 250, "quantity": 10 },
