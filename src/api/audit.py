@@ -19,69 +19,35 @@ def get_inventory():
     with db.engine.begin() as connection:
         gold = connection.execute(sqlalchemy.text(
                                             """
-                                               SELECT SUM(change) 
+                                               SELECT COALESCE(SUM(change), 0)::int AS quantity
                                                FROM gold_ledger
                                             """)
-                                            )
-        gold = gold.scalar()
+                                            ).scalar()
         
         potionNum = connection.execute(sqlalchemy.text(
                                             """
-                                               SELECT SUM(change) 
+                                               SELECT COALESCE(SUM(change), 0)::int AS quantity
                                                FROM potion_ledger
                                             """)
-                                            )
-        potionNum = potionNum.scalar()
-        if potionNum is None:
-            potionNum = 0
+                                            ).scalar()
         
-        redMl = connection.execute(sqlalchemy.text(
-                                            """
-                                               SELECT SUM(change) 
-                                               FROM ml_ledger
-                                               WHERE ml_type = 'red'
-                                            """)
-                                            )
-        redMl = redMl.scalar()
-        if redMl is None:
-            redMl = 0
+        mlTable = connection.execute(sqlalchemy.text(
+                                                """
+                                                    SELECT ml_type, COALESCE(SUM(change), 0)::int AS quantity
+                                                    FROM ml_ledger
+                                                    GROUP BY ml_type
+                                                    ORDER BY ml_type
+                                                """)).all()             
+        print(mlTable)
         
-        greenMl = connection.execute(sqlalchemy.text(
-                                            """
-                                               SELECT SUM(change) 
-                                               FROM ml_ledger
-                                               WHERE ml_type = 'green'
-                                            """)
-                                            )
-        greenMl = greenMl.scalar()
-        if greenMl is None:
-            greenMl = 0
+        mlDict = {}
         
-        blueMl = connection.execute(sqlalchemy.text(
-                                            """
-                                               SELECT SUM(change) 
-                                               FROM ml_ledger
-                                               WHERE ml_type = 'blue'
-                                            """)
-                                            )
-        blueMl = blueMl.scalar()
-        if blueMl is None:
-            blueMl = 0
+        for pair in mlTable:
+            mlDict[pair.ml_type] = pair.quantity
         
-        darkMl = connection.execute(sqlalchemy.text(
-                                            """
-                                               SELECT SUM(change) 
-                                               FROM ml_ledger
-                                               WHERE ml_type = 'dark'
-                                            """)
-                                            )
-        darkMl = darkMl.scalar()
-        if darkMl is None:
-            darkMl = 0
+        print(potionNum, (mlDict['red'], mlDict['green'], mlDict['blue'], mlDict['dark']), gold)
         
-        print(potionNum, (redMl, greenMl, blueMl, darkMl), gold)
-        
-        return {"number_of_potions": (potionNum), "ml_in_barrels": (redMl + greenMl + blueMl + darkMl), "gold": gold}
+        return {"number_of_potions": (potionNum), "ml_in_barrels": (mlDict['red']+ mlDict['green'] + mlDict['blue'] + mlDict['dark']), "gold": gold}
         
         
     #    result = connection.execute(sqlalchemy.text("SELECT quantity FROM potions"))

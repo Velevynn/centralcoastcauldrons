@@ -15,28 +15,24 @@ def get_catalog():
     with db.engine.begin() as connection:
         result = connection.execute(sqlalchemy.text(
                                                 """
-                                                    SELECT potions.potion_id, item_sku, name, red_ml, green_ml, blue_ml, dark_ml, price, COALESCE(SUM(change), 0)::int
+                                                    SELECT potions.potion_id, item_sku, name, red_ml, green_ml, blue_ml, dark_ml, price, COALESCE(SUM(change), 0)::int AS quantity
                                                     FROM potions
                                                     LEFT JOIN potion_ledger ON potions.potion_id = potion_ledger.potion_id
                                                     GROUP BY potions.potion_id
                                                 """))
         
         potionTable = result.all()
-                
-        # result = connection.execute(sqlalchemy.text("SELECT potion_id, item_sku, name, red_ml, green_ml, blue_ml, dark_ml, quantity, price FROM potions"))
-        # potionTable = result.fetchall()
-       
         potionCatalog = []
         
         for potion in potionTable:
-            if potion[8] > 0:
+            if potion.quantity > 0:
                 potionCatalog.append(
                     {
-                        'sku': potion[1],
-                        'name': potion[2],
-                        'quantity': potion[8],
-                        'price': potion[7],
-                        'potion_type': [potion[3], potion[4], potion[5], potion[6]]
+                        'sku': potion.item_sku,
+                        'name': potion.name,
+                        'quantity': potion.quantity,
+                        'price': potion.price,
+                        'potion_type': [potion.red_ml, potion.green_ml, potion.blue_ml, potion.dark_ml]
                     }
                 )
                 

@@ -75,7 +75,7 @@ def get_bottle_plan():
     with db.engine.begin() as connection:
         result = connection.execute(sqlalchemy.text(
                                                 """
-                                                    SELECT potions.potion_id, red_ml, green_ml, blue_ml, dark_ml, COALESCE(SUM(change), 0)::int
+                                                    SELECT potions.potion_id, red_ml, green_ml, blue_ml, dark_ml, COALESCE(SUM(change), 0)::int AS quantity
                                                     FROM potions
                                                     LEFT JOIN potion_ledger ON potions.potion_id = potion_ledger.potion_id
                                                     GROUP BY potions.potion_id
@@ -86,7 +86,7 @@ def get_bottle_plan():
         
         result = connection.execute(sqlalchemy.text(
                                                 """
-                                                    SELECT ml_type, COALESCE(SUM (change), 0)::int
+                                                    SELECT ml_type, COALESCE(SUM (change), 0)::int AS quantity
                                                     FROM ml_ledger
                                                     GROUP BY ml_type
                                                 """))
@@ -97,28 +97,28 @@ def get_bottle_plan():
         totalMlTable = [0, 0, 0, 0]
         for pair in mlRows:
             if pair[0] == 'red':
-                totalMlTable[0] = pair[1]
+                totalMlTable[0] = pair.quantity
             elif pair[0] == 'green':
-                totalMlTable[1] = pair[1]
+                totalMlTable[1] = pair.quantity
             elif pair[0] == 'blue':
-                totalMlTable[2] = pair[1]
+                totalMlTable[2] = pair.quantity
             elif pair[0] == 'dark':
-                totalMlTable[3] = pair[1]
+                totalMlTable[3] = pair.quantity
         print(totalMlTable)
     
         buyPotions = []
         
         for potion in potionTable:
-            currPotionQuantity = potion[5]
+            currPotionQuantity = potion.quantity
             potionDict = {
-                        "potion_type": [potion[1], potion[2], potion[3], potion[4]],
+                        "potion_type": [potion.red_ml, potion.green_ml, potion.blue_ml, potion.dark_ml],
                         "quantity": 1
                     }
             while all([potion[idx+1] <= totalMlTable[idx] for idx in range(len(totalMlTable))]) and currPotionQuantity < 10:
-                totalMlTable[0] -= potion[1]
-                totalMlTable[1] -= potion[2]
-                totalMlTable[2] -= potion[3]
-                totalMlTable[3] -= potion[4]
+                totalMlTable[0] -= potion.red_ml
+                totalMlTable[1] -= potion.green_ml
+                totalMlTable[2] -= potion.blue_ml
+                totalMlTable[3] -= potion.dark_ml
                 currPotionQuantity += 1
 
                 if potionDict in buyPotions:

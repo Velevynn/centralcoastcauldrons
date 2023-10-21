@@ -120,11 +120,11 @@ def get_wholesale_purchase_plan(wholesale_catalog: list[Barrel]):
             del mlDict['dark']
 
         gold = connection.execute(sqlalchemy.text(
-                                                """
-                                                    SELECT SUM (change)
-                                                    FROM gold_ledger
-                                                """
-                                                )).scalar()
+                                            """
+                                               SELECT COALESCE(SUM(change), 0)::int AS quantity
+                                               FROM gold_ledger
+                                            """)
+                                            ).scalar()
 
     # while condition to buy is active
     while gold >= goldBreakpoint:
