@@ -82,9 +82,9 @@ def set_item_quantity(cart_id: int, item_sku: str, cart_item: CartItem):
         
         quantityCheck = connection.execute(sqlalchemy.text(
                                                 """
-                                                    SELECT SUM (change)
+                                                    SELECT COALESCE(SUM(change), 0)::int
                                                     FROM potions
-                                                    JOIN potion_ledger
+                                                    LEFT JOIN potion_ledger
                                                     ON potions.potion_id = potion_ledger.potion_id
                                                     WHERE item_sku = :item_sku
                                                 """
@@ -126,54 +126,51 @@ def checkout(cart_id: int, cart_checkout: CartCheckout):
     goldGained = 0
     
     with db.engine.begin() as connection:
-        # get rows from cart_items associated with the given cart_id
-        # could maybe join cart_items and potions on item_id = potion_id?
-        #   no need to select price, but still need a separate call to update potions
-        result = connection.execute(sqlalchemy.text(
+        cartCheckedOut = connection.execute(sqlalchemy.text(
+                                                """
+                                                    SELECT checked_out
+                                                    FROM carts
+                                                    WHERE cart_id = :cart_id
+                                                """
+                                                ),
+                                                [{
+                                                    'cart_id': cart_id
+                                                }]).scalar()
+        
+        if cartCheckedOut is True:
+            return "Invalid Selection"
+        
+        itemTable = connection.execute(sqlalchemy.text(
                                                 """
                                                     SELECT cart_id, item_id, quantity
                                                     FROM cart_items
                                                     WHERE cart_id  = :cart_id
-                                                """),
+                                                """
+                                                ),
                                                 [{
                                                     'cart_id': cart_id
-                                                }])
-        itemTable = result.all()
+                                                }]).all()
         print(itemTable)
-        
         
         
         for item in itemTable:
             quantityCheck = connection.execute(sqlalchemy.text(
                                                 """
-                                                    SELECT SUM (change)
+                                                    SELECT COALESCE(SUM(change), 0)
                                                     FROM potions
-                                                    JOIN potion_ledger
+                                                    LEFT JOIN potion_ledger
                                                     ON potions.potion_id = potion_ledger.potion_id
                                                     WHERE potions.potion_id = :potion_id
                                                 """
                                                 ),
                                                 [{
-                                                    'potion_id': item[1]
-                                                }])
-            quantityCheck = quantityCheck.scalar()
-            quantity = quantityCheck
-            if item[2] > quantity:
-                raise Exception
+                                                    'potion_id': item.item_id
+                                                }]).scalar()
+            if item[2] > quantityCheck:
+                return "Invalid Request"
                 
             
         for item in itemTable:
-            # connection.execute(sqlalchemy.text(
-            #                                 """
-            #                                     UPDATE potions
-            #                                     SET
-            #                                     quantity = quantity - :sold
-            #                                     WHERE potion_id = :item_id
-            #                                 """),
-            #                                 [{
-            #                                     'sold': item[2],
-            #                                     'item_id': item[1]
-            #                                 }])
             price = connection.execute(sqlalchemy.text(
                                                     """
                                                         SELECT price
@@ -181,18 +178,8 @@ def checkout(cart_id: int, cart_checkout: CartCheckout):
                                                         WHERE potion_id = :item_id
                                                     """),
                                                     [{
-                                                        'item_id': item[1]
-                                                    }])
-            price = price.scalar()
-            # connection.execute(sqlalchemy.text(
-            #                                 """
-            #                                     UPDATE global_inventory
-            #                                     SET gold = gold + :price * :quantity
-            #                                 """),
-            #                                 [{
-            #                                     'price': price,
-            #                                     'quantity': item[2]
-            #                                 }])
+                                                        'item_id': item.item_id
+                                                    }]).scalar()
             
             connection.execute(sqlalchemy.text(
                                             """
@@ -201,8 +188,8 @@ def checkout(cart_id: int, cart_checkout: CartCheckout):
                                             """
                                             ),
                                             [{
-                                                'potion_id': item[1],
-                                                'sold': item[2] // -1
+                                                'potion_id': item.item_id,
+                                                'sold': item.quantity // -1
                                             }])
             
             connection.execute(sqlalchemy.text(
@@ -212,15 +199,25 @@ def checkout(cart_id: int, cart_checkout: CartCheckout):
                                             """
                                             ),
                                             [{
-                                                'category': "Sold %d potions of id %d" % (item[2], item[1]),
-                                                'goldGained': price * item[2]
+                                                'category': "Sold %d potions of id %d" % (item.quantity, item.item_id),
+                                                'goldGained': price * item.quantity
                                             }])
             
             
-            totalSold += item[2]
-            goldGained += price * item[2]
+            totalSold += item.quantity
+            goldGained += price * item.quantity
             
-        
+        connection.execute(sqlalchemy.text(
+                                        """
+                                            UPDATE carts
+                                            SET checked_out = :true
+                                            WHERE cart_id = :cart_id
+                                        """
+                                        ),
+                                        [{
+                                            'true': True,
+                                            'cart_id': cart_id
+                                        }])
         
         
             

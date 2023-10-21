@@ -15,9 +15,9 @@ def get_catalog():
     with db.engine.begin() as connection:
         result = connection.execute(sqlalchemy.text(
                                                 """
-                                                    SELECT potions.potion_id, item_sku, name, red_ml, green_ml, blue_ml, dark_ml, price, SUM (change)
+                                                    SELECT potions.potion_id, item_sku, name, red_ml, green_ml, blue_ml, dark_ml, price, COALESCE(SUM(change), 0)::int
                                                     FROM potions
-                                                    INNER JOIN potion_ledger ON potions.potion_id = potion_ledger.potion_id
+                                                    LEFT JOIN potion_ledger ON potions.potion_id = potion_ledger.potion_id
                                                     GROUP BY potions.potion_id
                                                 """))
         
