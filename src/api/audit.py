@@ -33,17 +33,17 @@ def get_inventory():
         
         mlTable = connection.execute(sqlalchemy.text(
                                                 """
-                                                    SELECT ml_type, COALESCE(SUM(change), 0)::int AS quantity
+                                                    SELECT
+                                                    COALESCE(SUM(red_change), 0)::int as red_change,
+                                                    COALESCE(SUM(green_change), 0)::int as green_change,
+                                                    COALESCE(SUM(blue_change), 0)::int as blue_change,
+                                                    COALESCE(SUM(dark_change), 0)::int as dark_change
                                                     FROM ml_ledger
-                                                    GROUP BY ml_type
-                                                    ORDER BY ml_type
-                                                """)).all()             
+                                                    
+                                                """)).first()             
         print(mlTable)
         
-        mlDict = {}
-        
-        for pair in mlTable:
-            mlDict[pair.ml_type] = pair.quantity
+        mlDict = {'red': mlTable.red_change, 'green': mlTable.green_change, 'blue': mlTable.blue_change, 'dark': mlTable.dark_change}
         
         print(potionNum, (mlDict['red'], mlDict['green'], mlDict['blue'], mlDict['dark']), gold)
         

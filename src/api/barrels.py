@@ -65,13 +65,16 @@ def post_deliver_barrels(barrels_delivered: list[Barrel]):
             
             connection.execute(sqlalchemy.text(
                                             """
-                                                INSERT INTO ml_ledger (ml_type, change)
-                                                VALUES (:ml_type, :change)
+                                                INSERT INTO ml_ledger (category, red_change, green_change, blue_change, dark_change)
+                                                VALUES (:category, :red_change, :green_change, :blue_change, :dark_change)
                                             """
                                             ),
                                             [{
-                                                'ml_type': MlType,
-                                                'change': barrel.ml_per_barrel * barrel.quantity
+                                                'category': "Bought %d barrels of %s type" % (barrel.quantity, barrel.sku),
+                                                'red_change': barrel.potion_type[0] * barrel.ml_per_barrel * barrel.quantity,
+                                                'green_change': barrel.potion_type[1] * barrel.ml_per_barrel * barrel.quantity,
+                                                'blue_change': barrel.potion_type[2] * barrel.ml_per_barrel * barrel.quantity,
+                                                'dark_change': barrel.potion_type[3] * barrel.ml_per_barrel * barrel.quantity
                                             }])
             
         
@@ -101,19 +104,24 @@ def get_wholesale_purchase_plan(wholesale_catalog: list[Barrel]):
     with db.engine.begin() as connection:
         mlTable = connection.execute(sqlalchemy.text(
                                                 """
-                                                    SELECT ml_type, COALESCE(SUM(change), 0)::int AS quantity
+                                                    SELECT
+                                                    COALESCE(SUM(red_change), 0)::int as red_change,
+                                                    COALESCE(SUM(green_change), 0)::int as green_change,
+                                                    COALESCE(SUM(blue_change), 0)::int as blue_change,
+                                                    COALESCE(SUM(dark_change), 0)::int as dark_change
                                                     FROM ml_ledger
-                                                    GROUP BY ml_type
-                                                    ORDER BY ml_type
-                                                """)).all()             
+                                                    
+                                                """)).first()             
         print(mlTable)
         
         mlDict = {}
         goldBreakpoint = 100
         buyBarrels = []
         
-        for pair in mlTable:
-            mlDict[pair.ml_type] = pair.quantity
+        mlDict['red'] = mlTable.red_change
+        mlDict['green'] = mlTable.green_change
+        mlDict['blue'] = mlTable.blue_change
+        mlDict['dark'] = mlTable.dark_change
         print(mlDict)
         
         if largeCatalog is not True:

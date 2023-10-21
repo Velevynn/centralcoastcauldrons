@@ -156,7 +156,7 @@ def checkout(cart_id: int, cart_checkout: CartCheckout):
         for item in itemTable:
             quantityCheck = connection.execute(sqlalchemy.text(
                                                 """
-                                                    SELECT COALESCE(SUM(change), 0)
+                                                    SELECT COALESCE(SUM(change), 0)::int
                                                     FROM potions
                                                     LEFT JOIN potion_ledger
                                                     ON potions.potion_id = potion_ledger.potion_id
@@ -171,24 +171,25 @@ def checkout(cart_id: int, cart_checkout: CartCheckout):
                 
             
         for item in itemTable:
-            price = connection.execute(sqlalchemy.text(
+            priceName = connection.execute(sqlalchemy.text(
                                                     """
-                                                        SELECT price
+                                                        SELECT price, name
                                                         FROM potions
                                                         WHERE potion_id = :item_id
                                                     """),
                                                     [{
                                                         'item_id': item.item_id
-                                                    }]).scalar()
-            
+                                                    }]).first()
+            print(priceName)
             connection.execute(sqlalchemy.text(
                                             """
-                                                INSERT INTO potion_ledger (potion_id, change)
-                                                VALUES (:potion_id, :sold)
+                                                INSERT INTO potion_ledger (potion_id, name, change)
+                                                VALUES (:potion_id, :name, :sold)
                                             """
                                             ),
                                             [{
                                                 'potion_id': item.item_id,
+                                                'name': priceName.name,
                                                 'sold': item.quantity // -1
                                             }])
             
@@ -199,13 +200,13 @@ def checkout(cart_id: int, cart_checkout: CartCheckout):
                                             """
                                             ),
                                             [{
-                                                'category': "Sold %d potions of id %d" % (item.quantity, item.item_id),
-                                                'goldGained': price * item.quantity
+                                                'category': "Sold %d %s potions of id %d" % (item.quantity, priceName.name, item.item_id),
+                                                'goldGained': priceName.price * item.quantity
                                             }])
             
             
             totalSold += item.quantity
-            goldGained += price * item.quantity
+            goldGained += priceName.price * item.quantity
             
         connection.execute(sqlalchemy.text(
                                         """

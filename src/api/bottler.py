@@ -33,9 +33,9 @@ def post_deliver_bottles(potions_delivered: list[PotionInventory]):
     
     with db.engine.begin() as connection:
         for potion in potions_delivered:
-            potionIDPrice = connection.execute(sqlalchemy.text(
+            potionIDName = connection.execute(sqlalchemy.text(
                                                         """
-                                                            SELECT potion_id FROM potions
+                                                            SELECT potion_id, name FROM potions
                                                             WHERE red_ml = :red
                                                             AND green_ml = :green
                                                             AND blue_ml = :blue
@@ -47,16 +47,31 @@ def post_deliver_bottles(potions_delivered: list[PotionInventory]):
                                                             'blue': potion.potion_type[2],
                                                             'dark': potion.potion_type[3]
                                                         }])
-            potionIDPrice = potionIDPrice.scalar()
+            potionIDName = potionIDName.first()
             
             connection.execute(sqlalchemy.text(
                                             """
-                                                INSERT INTO potion_ledger (potion_id, change)
-                                                VALUES (:potion_id, :change)
+                                                INSERT INTO potion_ledger (potion_id, name, change)
+                                                VALUES (:potion_id, :name, :change)
                                             """),
                                             [{
-                                                'potion_id': potionIDPrice,
+                                                'potion_id': potionIDName.potion_id,
+                                                'name': potionIDName.name,
                                                 'change': potion.quantity
+                                            }])
+            
+            connection.execute(sqlalchemy.text(
+                                            """
+                                                INSERT INTO ml_ledger (category, red_change, green_change, blue_change, dark_change)
+                                                VALUES (:category, :red_change, :green_change, :blue_change, :dark_change)
+                                            """
+                                            ),
+                                            [{
+                                                'category': "Bottled %d %s potions of id %s." % (potion.quantity, potionIDName.name, potionIDName.potion_id),
+                                                'red_change': potion.potion_type[0] * potion.quantity // -1,
+                                                'green_change': potion.potion_type[1] * potion.quantity // -1,
+                                                'blue_change': potion.potion_type[2] * potion.quantity // -1,
+                                                'dark_change': potion.potion_type[3] * potion.quantity // -1
                                             }])
         
     return "OK"
@@ -86,24 +101,18 @@ def get_bottle_plan():
         
         result = connection.execute(sqlalchemy.text(
                                                 """
-                                                    SELECT ml_type, COALESCE(SUM (change), 0)::int AS quantity
+                                                    SELECT
+                                                    COALESCE(SUM(red_change), 0)::int as red_change,
+                                                    COALESCE(SUM(green_change), 0)::int as green_change,
+                                                    COALESCE(SUM(blue_change), 0)::int as blue_change,
+                                                    COALESCE(SUM(dark_change), 0)::int as dark_change
                                                     FROM ml_ledger
-                                                    GROUP BY ml_type
                                                 """))
                 
-        mlRows = result.all()
+        mlRows = result.first()
         print(mlRows)
         
-        totalMlTable = [0, 0, 0, 0]
-        for pair in mlRows:
-            if pair[0] == 'red':
-                totalMlTable[0] = pair.quantity
-            elif pair[0] == 'green':
-                totalMlTable[1] = pair.quantity
-            elif pair[0] == 'blue':
-                totalMlTable[2] = pair.quantity
-            elif pair[0] == 'dark':
-                totalMlTable[3] = pair.quantity
+        totalMlTable = [mlRows.red_change, mlRows.green_change, mlRows.blue_change, mlRows.dark_change]
         print(totalMlTable)
     
         buyPotions = []
