@@ -123,7 +123,7 @@ def get_bottle_plan():
                         "potion_type": [potion.red_ml, potion.green_ml, potion.blue_ml, potion.dark_ml],
                         "quantity": 1
                     }
-            while all([potion[idx+1] <= totalMlTable[idx] for idx in range(len(totalMlTable))]) and currPotionQuantity < 10:
+            while all([potion[idx+1] <= totalMlTable[idx] for idx in range(len(totalMlTable))]) and currPotionQuantity < 30:
                 totalMlTable[0] -= potion.red_ml
                 totalMlTable[1] -= potion.green_ml
                 totalMlTable[2] -= potion.blue_ml
