@@ -30,7 +30,7 @@ def create_cart(new_cart: NewCart):
     """ """
     
     with db.engine.begin() as connection:
-        result = connection.execute(sqlalchemy.text(
+        cart_id = connection.execute(sqlalchemy.text(
                                         """
                                             INSERT INTO carts (customer)
                                             VALUES (:customer)
@@ -38,9 +38,9 @@ def create_cart(new_cart: NewCart):
                                         """),
                                         [{
                                           'customer': new_cart.customer
-                                        }])
+                                        }]).scalar()
     
-    return {"cart_id": result.scalar()}
+    return {"cart_id": cart_id}
 
 
 @router.get("/{cart_id}")
