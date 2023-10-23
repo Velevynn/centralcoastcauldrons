@@ -126,6 +126,9 @@ def get_wholesale_purchase_plan(wholesale_catalog: list[Barrel]):
         
         if largeCatalog is not True:
             del mlDict['dark']
+            
+        if all([mlDict[key] > 10000 for key in mlDict]):
+            return []
 
         gold = connection.execute(sqlalchemy.text(
                                             """
