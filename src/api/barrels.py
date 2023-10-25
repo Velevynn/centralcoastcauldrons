@@ -126,9 +126,6 @@ def get_wholesale_purchase_plan(wholesale_catalog: list[Barrel]):
         
         if largeCatalog is not True:
             del mlDict['dark']
-            
-        if all([mlDict[key] > 10000 for key in mlDict]):
-            return []
 
         gold = connection.execute(sqlalchemy.text(
                                             """
@@ -138,7 +135,7 @@ def get_wholesale_purchase_plan(wholesale_catalog: list[Barrel]):
                                             ).scalar()
 
     # while condition to buy is active
-    while gold >= goldBreakpoint:
+    while gold >= goldBreakpoint and any([mlDict[key] < 15000 for key in mlDict]):
         minVal = float('inf')
         typeList = list(mlDict.keys())
         random.shuffle(typeList)
@@ -154,8 +151,10 @@ def get_wholesale_purchase_plan(wholesale_catalog: list[Barrel]):
             case 'red':
                 if largeCatalog is True and gold >= barrelDict['LARGE_RED_BARREL'].price and barrelDict['LARGE_RED_BARREL'].quantity > 0:
                     barrel = {'sku': 'LARGE_RED_BARREL', 'quantity': 1}
-                    if barrel in buyBarrels:
-                        barrel['quantity'] += 1
+                    if barrel['sku'] in [barrel['sku'] for barrel in buyBarrels]:
+                        for bar in buyBarrels:
+                            if barrel['sku'] == bar['sku']:
+                                bar['quantity'] += 1
                     else:
                         buyBarrels.append(barrel)
                     gold -= barrelDict['LARGE_RED_BARREL'].price
@@ -164,8 +163,10 @@ def get_wholesale_purchase_plan(wholesale_catalog: list[Barrel]):
                     
                 elif mediumCatalog is True and gold >= barrelDict['MEDIUM_RED_BARREL'].price and barrelDict['MEDIUM_RED_BARREL'].quantity > 0:
                     barrel = {'sku': 'MEDIUM_RED_BARREL', 'quantity': 1}
-                    if barrel in buyBarrels:
-                        barrel['quantity'] += 1
+                    if barrel['sku'] in [barrel['sku'] for barrel in buyBarrels]:
+                        for bar in buyBarrels:
+                            if barrel['sku'] == bar['sku']:
+                                bar['quantity'] += 1
                     else:
                         buyBarrels.append(barrel)
                     gold -= barrelDict['MEDIUM_RED_BARREL'].price
@@ -174,8 +175,10 @@ def get_wholesale_purchase_plan(wholesale_catalog: list[Barrel]):
                     
                 elif gold >= barrelDict['SMALL_RED_BARREL'].price and barrelDict['SMALL_RED_BARREL'].quantity > 0:
                     barrel = {'sku': 'SMALL_RED_BARREL', 'quantity': 1}
-                    if barrel in buyBarrels:
-                        barrel['quantity'] += 1
+                    if barrel['sku'] in [barrel['sku'] for barrel in buyBarrels]:
+                        for bar in buyBarrels:
+                            if barrel['sku'] == bar['sku']:
+                                bar['quantity'] += 1
                     else:
                         buyBarrels.append(barrel)
                     gold -= barrelDict['SMALL_RED_BARREL'].price
@@ -185,8 +188,10 @@ def get_wholesale_purchase_plan(wholesale_catalog: list[Barrel]):
             case 'green':
                 if largeCatalog is True and gold >= barrelDict['LARGE_GREEN_BARREL'].price and barrelDict['LARGE_GREEN_BARREL'].quantity > 0:
                     barrel = {'sku': 'LARGE_GREEN_BARREL', 'quantity': 1}
-                    if barrel in buyBarrels:
-                        barrel['quantity'] += 1
+                    if barrel['sku'] in [barrel['sku'] for barrel in buyBarrels]:
+                        for bar in buyBarrels:
+                            if barrel['sku'] == bar['sku']:
+                                bar['quantity'] += 1
                     else:
                         buyBarrels.append(barrel)
                     gold -= barrelDict['LARGE_RED_BARREL'].price
@@ -195,8 +200,10 @@ def get_wholesale_purchase_plan(wholesale_catalog: list[Barrel]):
                     
                 elif mediumCatalog is True and gold >= barrelDict['MEDIUM_GREEN_BARREL'].price and barrelDict['MEDIUM_GREEN_BARREL'].quantity > 0:
                     barrel = {'sku': 'MEDIUM_GREEN_BARREL', 'quantity': 1}
-                    if barrel in buyBarrels:
-                        barrel['quantity'] += 1
+                    if barrel['sku'] in [barrel['sku'] for barrel in buyBarrels]:
+                        for bar in buyBarrels:
+                            if barrel['sku'] == bar['sku']:
+                                bar['quantity'] += 1
                     else:
                         buyBarrels.append(barrel)
                     gold -= barrelDict['MEDIUM_GREEN_BARREL'].price
@@ -205,8 +212,10 @@ def get_wholesale_purchase_plan(wholesale_catalog: list[Barrel]):
                     
                 elif gold >= barrelDict['SMALL_GREEN_BARREL'].price and barrelDict['SMALL_GREEN_BARREL'].quantity > 0:
                     barrel = {'sku': 'SMALL_GREEN_BARREL', 'quantity': 1}
-                    if barrel in buyBarrels:
-                        barrel['quantity'] += 1
+                    if barrel['sku'] in [barrel['sku'] for barrel in buyBarrels]:
+                        for bar in buyBarrels:
+                            if barrel['sku'] == bar['sku']:
+                                bar['quantity'] += 1
                     else:
                         buyBarrels.append(barrel)
                     gold -= barrelDict['SMALL_GREEN_BARREL'].price
@@ -216,8 +225,10 @@ def get_wholesale_purchase_plan(wholesale_catalog: list[Barrel]):
             case 'blue':
                 if largeCatalog is True and gold >= barrelDict['LARGE_BLUE_BARREL'].price and barrelDict['LARGE_BLUE_BARREL'].quantity > 0:
                     barrel = {'sku': 'LARGE_BLUE_BARREL', 'quantity': 1}
-                    if barrel in buyBarrels:
-                        barrel['quantity'] += 1
+                    if barrel['sku'] in [barrel['sku'] for barrel in buyBarrels]:
+                        for bar in buyBarrels:
+                            if barrel['sku'] == bar['sku']:
+                                bar['quantity'] += 1
                     else:
                         buyBarrels.append(barrel)
                     gold -= barrelDict['LARGE_BLUE_BARREL'].price
@@ -226,8 +237,10 @@ def get_wholesale_purchase_plan(wholesale_catalog: list[Barrel]):
                     
                 if mediumCatalog is True and gold >= barrelDict['MEDIUM_BLUE_BARREL'].price and barrelDict['MEDIUM_BLUE_BARREL'].quantity > 0:
                     barrel = {'sku': 'MEDIUM_BLUE_BARREL', 'quantity': 1}
-                    if barrel in buyBarrels:
-                        barrel['quantity'] += 1
+                    if barrel['sku'] in [barrel['sku'] for barrel in buyBarrels]:
+                        for bar in buyBarrels:
+                            if barrel['sku'] == bar['sku']:
+                                bar['quantity'] += 1
                     else:
                         buyBarrels.append(barrel)
                     gold -= barrelDict['MEDIUM_BLUE_BARREL'].price
@@ -236,8 +249,10 @@ def get_wholesale_purchase_plan(wholesale_catalog: list[Barrel]):
                     
                 elif gold >= barrelDict['SMALL_BLUE_BARREL'].price and barrelDict['SMALL_BLUE_BARREL'].quantity > 0:
                     barrel = {'sku': 'SMALL_BLUE_BARREL', 'quantity': 1}
-                    if barrel in buyBarrels:
-                        barrel['quantity'] += 1
+                    if barrel['sku'] in [barrel['sku'] for barrel in buyBarrels]:
+                        for bar in buyBarrels:
+                            if barrel['sku'] == bar['sku']:
+                                bar['quantity'] += 1
                     else:
                         buyBarrels.append(barrel)
                     gold -= barrelDict['SMALL_BLUE_BARREL'].price
@@ -247,14 +262,17 @@ def get_wholesale_purchase_plan(wholesale_catalog: list[Barrel]):
             case 'dark':
                 if largeCatalog is True and gold >= barrelDict['LARGE_DARK_BARREL'].price and barrelDict['LARGE_DARK_BARREL'].quantity > 0:
                     barrel = {'sku': 'LARGE_DARK_BARREL', 'quantity': 1}
-                    if barrel in buyBarrels:
-                        barrel['quantity'] += 1
+                    if barrel['sku'] in [barrel['sku'] for barrel in buyBarrels]:
+                        for bar in buyBarrels:
+                            if barrel['sku'] == bar['sku']:
+                                bar['quantity'] += 1
                     else:
                         buyBarrels.append(barrel)
                     gold -= barrelDict['LARGE_DARK_BARREL'].price
                     mlDict['dark'] += barrelDict['LARGE_DARK_BARREL'].ml_per_barrel
                     barrelDict['LARGE_DARK_BARREL'].quantity -= 1
                 
+    
     return buyBarrels
     
 # [{ "sku": "MEDIUM_RED_BARREL", "ml_per_barrel": 2500, "potion_type": [1, 0, 0, 0], "price": 250, "quantity": 10 },
