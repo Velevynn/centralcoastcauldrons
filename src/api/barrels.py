@@ -98,7 +98,8 @@ def get_wholesale_purchase_plan(wholesale_catalog: list[Barrel]):
             mediumCatalog = True
         elif 'LARGE' in barrel.sku:
             largeCatalog = True
-        barrelDict[barrel.sku] = barrel
+        if 'MINI' not in barrel.sku:
+            barrelDict[barrel.sku] = barrel
                 
     # load ml, gold, and variables
     with db.engine.begin() as connection:
@@ -118,14 +119,14 @@ def get_wholesale_purchase_plan(wholesale_catalog: list[Barrel]):
         goldBreakpoint = 100
         buyBarrels = []
         
-        mlDict['red'] = mlTable.red_change
-        mlDict['green'] = mlTable.green_change
-        mlDict['blue'] = mlTable.blue_change
-        mlDict['dark'] = mlTable.dark_change
+        mlDict['RED'] = mlTable.red_change
+        mlDict['GREEN'] = mlTable.green_change
+        mlDict['BLUE'] = mlTable.blue_change
+        mlDict['DARK'] = mlTable.dark_change
         print(mlDict)
         
         if largeCatalog is not True:
-            del mlDict['dark']
+            del mlDict['DARK']
 
         gold = connection.execute(sqlalchemy.text(
                                             """
@@ -147,8 +148,15 @@ def get_wholesale_purchase_plan(wholesale_catalog: list[Barrel]):
 
         print(minMl)
         
+        
+        if all([barrelDict[barrel].quantity == 0 for barrel in barrelDict if minMl in barrelDict[barrel].sku]):
+            del mlDict[minMl]
+            continue
+        
         match minMl:
-            case 'red':
+            case 'RED':
+                
+                
                 if largeCatalog is True and gold >= barrelDict['LARGE_RED_BARREL'].price and barrelDict['LARGE_RED_BARREL'].quantity > 0:
                     barrel = {'sku': 'LARGE_RED_BARREL', 'quantity': 1}
                     if barrel['sku'] in [barrel['sku'] for barrel in buyBarrels]:
@@ -158,7 +166,7 @@ def get_wholesale_purchase_plan(wholesale_catalog: list[Barrel]):
                     else:
                         buyBarrels.append(barrel)
                     gold -= barrelDict['LARGE_RED_BARREL'].price
-                    mlDict['red'] += barrelDict['LARGE_RED_BARREL'].ml_per_barrel
+                    mlDict['RED'] += barrelDict['LARGE_RED_BARREL'].ml_per_barrel
                     barrelDict['LARGE_RED_BARREL'].quantity -= 1
                     
                 elif mediumCatalog is True and gold >= barrelDict['MEDIUM_RED_BARREL'].price and barrelDict['MEDIUM_RED_BARREL'].quantity > 0:
@@ -170,7 +178,7 @@ def get_wholesale_purchase_plan(wholesale_catalog: list[Barrel]):
                     else:
                         buyBarrels.append(barrel)
                     gold -= barrelDict['MEDIUM_RED_BARREL'].price
-                    mlDict['red'] += barrelDict['MEDIUM_RED_BARREL'].ml_per_barrel
+                    mlDict['RED'] += barrelDict['MEDIUM_RED_BARREL'].ml_per_barrel
                     barrelDict['MEDIUM_RED_BARREL'].quantity -= 1
                     
                 elif gold >= barrelDict['SMALL_RED_BARREL'].price and barrelDict['SMALL_RED_BARREL'].quantity > 0:
@@ -182,10 +190,10 @@ def get_wholesale_purchase_plan(wholesale_catalog: list[Barrel]):
                     else:
                         buyBarrels.append(barrel)
                     gold -= barrelDict['SMALL_RED_BARREL'].price
-                    mlDict['red'] += barrelDict['SMALL_RED_BARREL'].ml_per_barrel
+                    mlDict['RED'] += barrelDict['SMALL_RED_BARREL'].ml_per_barrel
                     barrelDict['SMALL_RED_BARREL'].quantity -= 1
                                         
-            case 'green':
+            case 'GREEN':
                 if largeCatalog is True and gold >= barrelDict['LARGE_GREEN_BARREL'].price and barrelDict['LARGE_GREEN_BARREL'].quantity > 0:
                     barrel = {'sku': 'LARGE_GREEN_BARREL', 'quantity': 1}
                     if barrel['sku'] in [barrel['sku'] for barrel in buyBarrels]:
@@ -195,7 +203,7 @@ def get_wholesale_purchase_plan(wholesale_catalog: list[Barrel]):
                     else:
                         buyBarrels.append(barrel)
                     gold -= barrelDict['LARGE_RED_BARREL'].price
-                    mlDict['green'] += barrelDict['LARGE_RED_BARREL'].ml_per_barrel
+                    mlDict['GREEN'] += barrelDict['LARGE_RED_BARREL'].ml_per_barrel
                     barrelDict['LARGE_RED_BARREL'].quantity -= 1
                     
                 elif mediumCatalog is True and gold >= barrelDict['MEDIUM_GREEN_BARREL'].price and barrelDict['MEDIUM_GREEN_BARREL'].quantity > 0:
@@ -207,7 +215,7 @@ def get_wholesale_purchase_plan(wholesale_catalog: list[Barrel]):
                     else:
                         buyBarrels.append(barrel)
                     gold -= barrelDict['MEDIUM_GREEN_BARREL'].price
-                    mlDict['green'] += barrelDict['MEDIUM_GREEN_BARREL'].ml_per_barrel
+                    mlDict['GREEN'] += barrelDict['MEDIUM_GREEN_BARREL'].ml_per_barrel
                     barrelDict['MEDIUM_GREEN_BARREL'].quantity -= 1
                     
                 elif gold >= barrelDict['SMALL_GREEN_BARREL'].price and barrelDict['SMALL_GREEN_BARREL'].quantity > 0:
@@ -219,10 +227,10 @@ def get_wholesale_purchase_plan(wholesale_catalog: list[Barrel]):
                     else:
                         buyBarrels.append(barrel)
                     gold -= barrelDict['SMALL_GREEN_BARREL'].price
-                    mlDict['green'] += barrelDict['SMALL_GREEN_BARREL'].ml_per_barrel
+                    mlDict['GREEN'] += barrelDict['SMALL_GREEN_BARREL'].ml_per_barrel
                     barrelDict['SMALL_GREEN_BARREL'].quantity -= 1
                     
-            case 'blue':
+            case 'BLUE':
                 if largeCatalog is True and gold >= barrelDict['LARGE_BLUE_BARREL'].price and barrelDict['LARGE_BLUE_BARREL'].quantity > 0:
                     barrel = {'sku': 'LARGE_BLUE_BARREL', 'quantity': 1}
                     if barrel['sku'] in [barrel['sku'] for barrel in buyBarrels]:
@@ -232,7 +240,7 @@ def get_wholesale_purchase_plan(wholesale_catalog: list[Barrel]):
                     else:
                         buyBarrels.append(barrel)
                     gold -= barrelDict['LARGE_BLUE_BARREL'].price
-                    mlDict['blue'] += barrelDict['LARGE_BLUE_BARREL'].ml_per_barrel
+                    mlDict['BLUE'] += barrelDict['LARGE_BLUE_BARREL'].ml_per_barrel
                     barrelDict['LARGE_BLUE_BARREL'].quantity -= 1
                     
                 if mediumCatalog is True and gold >= barrelDict['MEDIUM_BLUE_BARREL'].price and barrelDict['MEDIUM_BLUE_BARREL'].quantity > 0:
@@ -244,7 +252,7 @@ def get_wholesale_purchase_plan(wholesale_catalog: list[Barrel]):
                     else:
                         buyBarrels.append(barrel)
                     gold -= barrelDict['MEDIUM_BLUE_BARREL'].price
-                    mlDict['blue'] += barrelDict['MEDIUM_BLUE_BARREL'].ml_per_barrel
+                    mlDict['BLUE'] += barrelDict['MEDIUM_BLUE_BARREL'].ml_per_barrel
                     barrelDict['MEDIUM_BLUE_BARREL'].quantity -= 1
                     
                 elif gold >= barrelDict['SMALL_BLUE_BARREL'].price and barrelDict['SMALL_BLUE_BARREL'].quantity > 0:
@@ -256,10 +264,10 @@ def get_wholesale_purchase_plan(wholesale_catalog: list[Barrel]):
                     else:
                         buyBarrels.append(barrel)
                     gold -= barrelDict['SMALL_BLUE_BARREL'].price
-                    mlDict['blue'] += barrelDict['SMALL_BLUE_BARREL'].ml_per_barrel
+                    mlDict['BLUE'] += barrelDict['SMALL_BLUE_BARREL'].ml_per_barrel
                     barrelDict['SMALL_BLUE_BARREL'].quantity -= 1
                     
-            case 'dark':
+            case 'DARK':
                 if largeCatalog is True and gold >= barrelDict['LARGE_DARK_BARREL'].price and barrelDict['LARGE_DARK_BARREL'].quantity > 0:
                     barrel = {'sku': 'LARGE_DARK_BARREL', 'quantity': 1}
                     if barrel['sku'] in [barrel['sku'] for barrel in buyBarrels]:
@@ -269,7 +277,7 @@ def get_wholesale_purchase_plan(wholesale_catalog: list[Barrel]):
                     else:
                         buyBarrels.append(barrel)
                     gold -= barrelDict['LARGE_DARK_BARREL'].price
-                    mlDict['dark'] += barrelDict['LARGE_DARK_BARREL'].ml_per_barrel
+                    mlDict['DARK'] += barrelDict['LARGE_DARK_BARREL'].ml_per_barrel
                     barrelDict['LARGE_DARK_BARREL'].quantity -= 1
                 
     
