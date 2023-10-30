@@ -135,7 +135,7 @@ def search_orders(
         stmtList = [{}]
             
         if customer_name != "":
-            stmt += "WHERE carts.customer ILIKE Concat('%', carts.customer, '%') "
+            stmt += "WHERE carts.customer ILIKE Concat('%', :customer_name, '%') "
             stmtList[0]['customer_name'] = customer_name
             if potion_sku != "":
                 stmt += "AND potions.item_sku ILIKE Concat('%', :potion_sku, '%') "
