@@ -4,6 +4,7 @@ from src.api import auth
 from enum import Enum
 import sqlalchemy
 from src import database as db
+from sqlalchemy import MetaData
 
 
 router = APIRouter(
@@ -22,65 +23,176 @@ class search_sort_order(str, Enum):
     asc = "asc"
     desc = "desc"   
 
-# @router.get("/search/", tags=["search"])
-# def search_orders(
-#     customer_name: str = "",
-#     potion_sku: str = "",
-#     search_page: str = "",
-#     sort_col: search_sort_options = search_sort_options.timestamp,
-#     sort_order: search_sort_order = search_sort_order.desc,
-# ):
-#     """
-#     Search for cart line items by customer name and/or potion sku.
+@router.get("/search/", tags=["search"])
+def search_orders(
+    customer_name: str = "",
+    potion_sku: str = "",
+    search_page: str = "",
+    sort_col: search_sort_options = search_sort_options.timestamp,
+    sort_order: search_sort_order = search_sort_order.desc,
+):
+    """
+    Search for cart line items by customer name and/or potion sku.
 
-#     Customer name and potion sku filter to orders that contain the 
-#     string (case insensitive). If the filters aren't provided, no
-#     filtering occurs on the respective search term.
+    Customer name and potion sku filter to orders that contain the 
+    string (case insensitive). If the filters aren't provided, no
+    filtering occurs on the respective search term.
 
-#     Search page is a cursor for pagination. The response to this
-#     search endpoint will return previous or next if there is a
-#     previous or next page of results available. The token passed
-#     in that search response can be passed in the next search request
-#     as search page to get that page of results.
+    Search page is a cursor for pagination. The response to this
+    search endpoint will return previous or next if there is a
+    previous or next page of results available. The token passed
+    in that search response can be passed in the next search request
+    as search page to get that page of results.
 
-#     Sort col is which column to sort by and sort order is the direction
-#     of the search. They default to searching by timestamp of the order
-#     in descending order.
+    Sort col is which column to sort by and sort order is the direction
+    of the search. They default to searching by timestamp of the order
+    in descending order.
 
-#     The response itself contains a previous and next page token (if
-#     such pages exist) and the results as an array of line items. Each
-#     line item contains the line item id (must be unique), item sku, 
-#     customer name, line item total (in gold), and timestamp of the order.
-#     Your results must be paginated, the max results you can return at any
-#     time is 5 total line items.
-#     """
+    The response itself contains a previous and next page token (if
+    such pages exist) and the results as an array of line items. Each
+    line item contains the line item id (must be unique), item sku, 
+    customer name, line item total (in gold), and timestamp of the order.
+    Your results must be paginated, the max results you can return at any
+    time is 5 total line items.
     
-#     with db.engine.begin() as connection:
-#         # Customer name from carts.customer
-#         # Item sku from cart_item associated with customer name's cart_id
-#         # gold = price from potions table * quantity from cart_item
-#         # FROM carts 
-#         # JOIN cart_items ON cart_id = cart_id
-#         # JOIN potions on potion_id = item_id
-#         result = connection.execute(sqlalchemy.text(
-#                                                 """
-#                                                     SELECT 
-#                                                 """
-#                                                 ))
+    customer_name: str = "",
+    potion_sku: str = "",
+    search_page: str = "",
+    sort_col: search_sort_options = search_sort_options.timestamp,
+    sort_order: search_sort_order = search_sort_order.desc,
+    """
+    
+    
+    
+    
+    with db.engine.begin() as connection:
+        # events = db.carts.join(db.cart_items, db.carts.c.cart_id == db.cart_items.c.cart_id)
+        # events = events.join(db.potions, db.potions.c.potion_id == db.cart_items.c.item_id)
+        
+        
+        # stmt = (
+        #     """
+        #         With Orders AS (
+        #             SELECT
+        #                 carts.customer AS customer_name,
+        #                 potions.item_sku AS item_sku,
+        #                 cart_items.quantity AS quantity,
+        #                 potions.price AS price,
+        #                 carts.created_at AS timestamp
+        #             FROM carts
+        #             JOIN cart_items on carts.cart_id = cart_items.cart_id
+        #             JOIN potions on potions.potion_id = cart_items.item_id
+        #         )
+        #         SELECT
+        #             customer_name,
+        #             item_sku,
+        #             quantity,
+        #             (price * quantity) AS line_item_total,
+        #             timestamp
+        #         FROM Orders
+        #     """
+        # )
 
-#     return {
-#         "previous": "",
-#         "next": "",
-#         "results": [
-#             {
-#                 "line_item_id": 1,
-#                 "item_sku": "1 oblivion potion",
-#                 "customer_name": "Scaramouche",
-#                 "line_item_total": 50,
-#                 "timestamp": "2021-01-01T00:00:00Z",
-#             }
-#         ],
-#     }
+        # stmtList = [{}]
+            
+        # if customer_name != "":
+        #     stmt += "WHERE customer_name LIKE Concat('%', :customer_name, '%') "
+        #     stmtList[0]['customer_name'] = customer_name
+        #     if potion_sku != "":
+        #         stmt += "AND item_sku LIKE Concat('%', :item_sku, '%') "
+        #     stmtList[0]['item_sku'] = potion_sku
+        # else:
+        #     if potion_sku != "":
+        #         stmt += "WHERE item_sku LIKE Concat('%', :item_sku, '%') "
+        #     stmtList[0]['item_sku'] = potion_sku
+            
+
+        # stmt += """
+        #         ORDER BY :sort_col :sort_order
+        #         LIMIT 5
+        #         """
+        # stmtList[0]['sort_col'] = sort_col.value
+        # stmtList[0]['sort_order'] = sort_order.value
+        
+        
+        #
+        
+        stmt = (
+            f"""
+                SELECT
+                    carts.customer AS customer_name,
+                    potions.item_sku AS item_sku,
+                    cart_items.quantity AS quantity,
+                    cart_items.quantity * potions.price AS line_item_total,
+                    carts.created_at AS timestamp
+                FROM 
+                    carts
+                JOIN cart_items on carts.cart_id = cart_items.cart_id
+                JOIN potions on potions.potion_id = cart_items.item_id
+                """
+        )
+        
+        stmtList = [{}]
+            
+        if customer_name != "":
+            stmt += "WHERE carts.customer ILIKE Concat('%', carts.customer, '%') "
+            stmtList[0]['customer_name'] = customer_name
+            if potion_sku != "":
+                stmt += "AND potions.item_sku ILIKE Concat('%', :potion_sku, '%') "
+            stmtList[0]['potion_sku'] = potion_sku
+        else:
+            if potion_sku != "":
+                stmt += "WHERE potions.item_sku ILIKE Concat('%', :potion_sku, '%') "
+            stmtList[0]['potion_sku'] = potion_sku
+            
+
+        stmt += f"""
+                ORDER BY {sort_col.value} {sort_order.value}
+                """
+        
+        offset = (int(search_page)) * 5
+        previous = ""
+        next = ""
+
+        if search_page != "":
+            stmt += "OFFSET :offset "
+            stmtList[0]['offset'] = offset
+            if int(search_page) > 0:
+                previous = "%d" % (int(search_page) - 1)
+        
+        data = connection.execute(sqlalchemy.text(stmt), stmtList).all()
+
+        if len(data) > offset:
+            next = "%d" % (int(search_page) + 1)
+            
+        i = 0
+        finalList = []
+
+        
+        while i < 5 and offset + i < len(data):
+            finalList.append(
+                {
+                    "line_item_id": offset + i,
+                    "item_sku": "%d %s" % (data[i].quantity, data[i].item_sku),
+                    "customer_name": data[i].customer_name,
+                    "line_item_total": data[i].line_item_total,
+                    "timestamp": data[i].timestamp
+                }
+            )
+            i += 1
+                                
+        # Customer name from carts.customer
+        # Item sku from cart_item associated with customer name's cart_id
+        # gold = price from potions table * quantity from cart_item
+        # FROM carts 
+        # JOIN cart_items ON cart_id = cart_id
+        # JOIN potions on potion_id = item_id
+    
+    return {
+        "previous": previous,
+        "next": next,
+        "results": finalList
+    }
 
 class NewCart(BaseModel):
     customer: str
