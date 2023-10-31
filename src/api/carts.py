@@ -150,11 +150,13 @@ def search_orders(
                 ORDER BY {sort_col.value} {sort_order.value}
                 """
         
-        offset = (int(search_page)) * 5
+        
         previous = ""
         next = ""
+        offset = 0
 
         if search_page != "":
+            offset = (int(search_page)) * 5
             stmt += "OFFSET :offset "
             stmtList[0]['offset'] = offset
             if int(search_page) > 0:
