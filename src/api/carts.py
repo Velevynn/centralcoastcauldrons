@@ -161,6 +161,8 @@ def search_orders(
             stmtList[0]['offset'] = offset
             if int(search_page) > 0:
                 previous = "%d" % (int(search_page) - 1)
+        else:
+            search_page = "0"
         
         data = connection.execute(sqlalchemy.text(stmt), stmtList).all()
 
@@ -171,7 +173,7 @@ def search_orders(
         finalList = []
 
         
-        while i < 5 and offset + i < len(data):
+        while i < 5 and i < len(data):
             finalList.append(
                 {
                     "line_item_id": offset + i,
