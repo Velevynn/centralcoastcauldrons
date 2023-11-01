@@ -139,7 +139,7 @@ def get_wholesale_purchase_plan(wholesale_catalog: list[Barrel]):
     while gold >= goldBreakpoint and any([mlDict[key] < 15000 for key in mlDict]):
         minVal = float('inf')
         typeList = list(mlDict.keys())
-        random.shuffle(typeList)
+        #random.shuffle(typeList)
 
         for type in typeList:
             if mlDict[type] < minVal:
