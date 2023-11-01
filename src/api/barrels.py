@@ -116,7 +116,7 @@ def get_wholesale_purchase_plan(wholesale_catalog: list[Barrel]):
         print(mlTable)
         
         mlDict = {}
-        goldBreakpoint = 100
+        goldBreakpoint = 250
         buyBarrels = []
         
         mlDict['RED'] = mlTable.red_change
