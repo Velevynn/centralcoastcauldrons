@@ -98,7 +98,8 @@ def get_wholesale_purchase_plan(wholesale_catalog: list[Barrel]):
     for barrel in wholesale_catalog:
         if 'MEDIUM' in barrel.sku:
             mediumCatalog = True
-            mlBreakpoint = 15000
+            if largeCatalog is False:
+                mlBreakpoint = 15000
         elif 'LARGE' in barrel.sku:
             largeCatalog = True
             mlBreakpoint = 60000
@@ -287,7 +288,10 @@ def get_wholesale_purchase_plan(wholesale_catalog: list[Barrel]):
     
     return buyBarrels
     
-# [{ "sku": "LARGE_RED_BARREL", "ml_per_barrel": 10000, "potion_type": [1, 0, 0, 0], "price": 500, "quantity": 10 }
+# [{ "sku": "LARGE_RED_BARREL", "ml_per_barrel": 10000, "potion_type": [1, 0, 0, 0], "price": 500, "quantity": 30 },
+# { "sku": "LARGE_GREEN_BARREL", "ml_per_barrel": 10000, "potion_type": [0, 1, 0, 0], "price": 500, "quantity": 30 },
+# { "sku": "LARGE_BLUE_BARREL", "ml_per_barrel": 10000, "potion_type": [0, 0, 1, 0], "price": 600, "quantity": 30 },
+# { "sku": "LARGE_DARK_BARREL", "ml_per_barrel": 10000, "potion_type": [0, 0, 0, 1], "price": 600, "quantity": 30 },
 # { "sku": "MEDIUM_RED_BARREL", "ml_per_barrel": 2500, "potion_type": [1, 0, 0, 0], "price": 250, "quantity": 10 },
 # { "sku": "MEDIUM_BLUE_BARREL", "ml_per_barrel": 2500, "potion_type": [0, 0, 1, 0], "price": 300, "quantity": 10 },
 # { "sku": "MEDIUM_GREEN_BARREL", "ml_per_barrel": 2500, "potion_type": [0, 1, 0, 0], "price": 250, "quantity": 10 },
