@@ -101,7 +101,7 @@ def get_wholesale_purchase_plan(wholesale_catalog: list[Barrel]):
             mlBreakpoint = 15000
         elif 'LARGE' in barrel.sku:
             largeCatalog = True
-            mlBreakpoint = 120000
+            mlBreakpoint = 60000
         if 'MINI' not in barrel.sku:
             barrelDict[barrel.sku] = barrel
                 
@@ -287,7 +287,8 @@ def get_wholesale_purchase_plan(wholesale_catalog: list[Barrel]):
     
     return buyBarrels
     
-# [{ "sku": "MEDIUM_RED_BARREL", "ml_per_barrel": 2500, "potion_type": [1, 0, 0, 0], "price": 250, "quantity": 10 },
+# [{ "sku": "LARGE_RED_BARREL", "ml_per_barrel": 10000, "potion_type": [1, 0, 0, 0], "price": 500, "quantity": 10 }
+# { "sku": "MEDIUM_RED_BARREL", "ml_per_barrel": 2500, "potion_type": [1, 0, 0, 0], "price": 250, "quantity": 10 },
 # { "sku": "MEDIUM_BLUE_BARREL", "ml_per_barrel": 2500, "potion_type": [0, 0, 1, 0], "price": 300, "quantity": 10 },
 # { "sku": "MEDIUM_GREEN_BARREL", "ml_per_barrel": 2500, "potion_type": [0, 1, 0, 0], "price": 250, "quantity": 10 },
 # { "sku": "SMALL_RED_BARREL", "ml_per_barrel": 500, "potion_type": [1, 0, 0, 0], "price": 100, "quantity": 10 },
