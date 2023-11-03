@@ -129,7 +129,7 @@ def get_wholesale_purchase_plan(wholesale_catalog: list[Barrel]):
         mlDict['DARK'] = mlTable.dark_change
         print(mlDict)
         
-        if largeCatalog is not True:
+        if largeCatalog is not True or mlDict['DARK'] > 25000:
             del mlDict['DARK']
 
         gold = connection.execute(sqlalchemy.text(
