@@ -89,6 +89,8 @@ def get_wholesale_purchase_plan(wholesale_catalog: list[Barrel]):
     print(wholesale_catalog)
     
     # identify which catalog is presented, and calculate prices + quantity
+    mlBreakpoint = 7500
+
     mediumCatalog = False
     largeCatalog = False
     barrelDict = {}
@@ -96,8 +98,10 @@ def get_wholesale_purchase_plan(wholesale_catalog: list[Barrel]):
     for barrel in wholesale_catalog:
         if 'MEDIUM' in barrel.sku:
             mediumCatalog = True
+            mlBreakpoint = 15000
         elif 'LARGE' in barrel.sku:
             largeCatalog = True
+            mlBreakpoint = 30000
         if 'MINI' not in barrel.sku:
             barrelDict[barrel.sku] = barrel
                 
@@ -136,7 +140,7 @@ def get_wholesale_purchase_plan(wholesale_catalog: list[Barrel]):
                                             ).scalar()
 
     # while condition to buy is active
-    while gold >= goldBreakpoint and any([mlDict[key] < 15000 for key in mlDict]):
+    while gold >= goldBreakpoint and any([mlDict[key] < mlBreakpoint for key in mlDict]):
         minVal = float('inf')
         typeList = list(mlDict.keys())
         #random.shuffle(typeList)
