@@ -13,6 +13,15 @@ def get_catalog():
     """
     
     with db.engine.begin() as connection:
+        # Create sliding view to offer potions according to what has been sold recently
+        # sql = (
+        #     """
+        #         CREATE VIEW potions_to_sell AS
+        #             WITH recent_transactions AS (
+        #                 SELECT 
+        #             )
+        #     """
+        #     )
         result = connection.execute(sqlalchemy.text(
                                                 """
                                                     SELECT potions.potion_id, item_sku, potions.name, red_ml, green_ml, blue_ml, dark_ml, price, COALESCE(SUM(change), 0)::int AS quantity
@@ -25,6 +34,8 @@ def get_catalog():
         potionCatalog = []
         
         for potion in potionTable:
+            if potion.potion_id >= 12:
+                continue
             if potion.quantity > 0:
                 potionCatalog.append(
                     {

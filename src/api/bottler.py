@@ -118,13 +118,16 @@ def get_bottle_plan():
         buyPotions = []
         
         for potion in potionTable:
+            if potion.potion_id == 9:
+                continue
+                
             currPotionQuantity = potion.quantity
             potionDict = {
                         "potion_type": [potion.red_ml, potion.green_ml, potion.blue_ml, potion.dark_ml],
                         "quantity": 1
                     }
             #testing
-            while all([potion[idx+1] <= totalMlTable[idx] for idx in range(len(totalMlTable))]) and currPotionQuantity < 50:
+            while all([potion[idx+1] <= totalMlTable[idx] for idx in range(len(totalMlTable))]) and currPotionQuantity < 25:
                 totalMlTable[0] -= potion.red_ml
                 totalMlTable[1] -= potion.green_ml
                 totalMlTable[2] -= potion.blue_ml
