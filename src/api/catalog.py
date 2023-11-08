@@ -14,16 +14,16 @@ def get_catalog():
     
     with db.engine.begin() as connection:
         # Create sliding view to offer potions according to what has been sold recently
-        sql = (
-            """
-                CREATE VIEW potions_to_sell AS
-                    WITH recent_transactions AS (
-                        SELECT potion_id
-                        FROM potion_ledger
-                        WHERE created_at 
-                    )
-            """
-            )
+        # sql = (
+        #     """
+        #         CREATE VIEW potions_to_sell AS
+        #             WITH recent_transactions AS (
+        #                 SELECT DISTINCT  potion_id
+        #                 FROM potion_ledger
+        #                 WHERE 
+        #             )
+        #     """
+        #     )
         result = connection.execute(sqlalchemy.text(
                                                 """
                                                     SELECT potions.potion_id, item_sku, potions.name, red_ml, green_ml, blue_ml, dark_ml, price, COALESCE(SUM(change), 0)::int AS quantity
