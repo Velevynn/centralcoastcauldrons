@@ -93,7 +93,7 @@ def get_bottle_plan():
                                                     SELECT potions.potion_id, red_ml, green_ml, blue_ml, dark_ml, COALESCE(SUM(change), 0)::int AS quantity
                                                     FROM potions
                                                     LEFT JOIN potion_ledger ON potions.potion_id = potion_ledger.potion_id
-                                                    WHERE potions.price > 0
+                                                    WHERE potions.price > 1
                                                     GROUP BY potions.potion_id
                                                 """))
         potionTable = result.fetchall()

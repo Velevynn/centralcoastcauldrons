@@ -18,34 +18,37 @@ def get_catalog():
         recentPotionIds = connection.execute(sqlalchemy.text(
             """
                 WITH recent_transactions AS (
-                    SELECT potion_ledger.potion_id, potion_ledger.transaction_id
+                    SELECT potion_ledger.potion_id, potion_ledger.transaction_id, potion_ledger.change AS sold
                     FROM potion_ledger
                     WHERE potion_ledger.change < 0
                     ORDER BY transaction_id DESC
-                    LIMIT 50
+                    LIMIT 30
                 )
-                SELECT DISTINCT potions.potion_id::int AS id, recent_transactions.transaction_id
+                SELECT DISTINCT potions.potion_id::int AS id, SUM(recent_transactions.sold)::int AS sold, potions.red_ml, potions.green_ml, potions.blue_ml, potions.dark_ml
                 FROM recent_transactions
                 INNER JOIN potions ON recent_transactions.potion_id = potions.potion_id
-                WHERE potions.price > 0
-                ORDER BY transaction_id DESC
+                WHERE potions.price > 1
+                GROUP BY potions.potion_id
+                ORDER BY sold ASC
                 
             """
             )).all()
         
+        print(recentPotionIds)
         idList = []
+        totalSold = 0
         for potion in recentPotionIds:
-            if potion.id not in idList and len(idList) < 3:
+            totalSold += (potion.sold // -1)
+        for potion in recentPotionIds:
+            if potion.id not in idList and len(idList) < 3 and (potion.sold // -1) >= totalSold * .2:
                 idList.append((potion.id))
-
-        print(idList)
 
         result = connection.execute(sqlalchemy.text(
                                                 """
                                                     SELECT potions.potion_id, item_sku, potions.name, red_ml, green_ml, blue_ml, dark_ml, price, COALESCE(SUM(change), 0)::int AS quantity
                                                     FROM potions
                                                     LEFT JOIN potion_ledger ON potions.potion_id = potion_ledger.potion_id
-                                                    WHERE potions.price > 0
+                                                    WHERE potions.price > 1
                                                     GROUP BY potions.potion_id
                                                 """))
         
@@ -81,5 +84,5 @@ def get_catalog():
                         'potion_type': [potion.red_ml, potion.green_ml, potion.blue_ml, potion.dark_ml]
                     }
                 )
-                
+        print(potionCatalog)
         return potionCatalog
