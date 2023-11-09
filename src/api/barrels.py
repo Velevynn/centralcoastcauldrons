@@ -129,9 +129,7 @@ def get_wholesale_purchase_plan(wholesale_catalog: list[Barrel]):
         mlDict['BLUE'] = mlTable.blue_change
         mlDict['DARK'] = mlTable.dark_change
         print(mlDict)
-        
-        if largeCatalog is not True or mlDict['DARK'] > 25000:
-            del mlDict['DARK']
+
 
         gold = connection.execute(sqlalchemy.text(
                                             """
@@ -153,9 +151,6 @@ def get_wholesale_purchase_plan(wholesale_catalog: list[Barrel]):
 
         print(minMl)
         
-        if minMl == 'DARK' and mlDict['DARK'] > 25000:
-            del mlDict["DARK"]
-            continue
         
         if all([barrelDict[barrel].quantity == 0 for barrel in barrelDict if minMl in barrelDict[barrel].sku]):
             del mlDict[minMl]

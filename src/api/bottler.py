@@ -93,6 +93,7 @@ def get_bottle_plan():
                                                     SELECT potions.potion_id, red_ml, green_ml, blue_ml, dark_ml, COALESCE(SUM(change), 0)::int AS quantity
                                                     FROM potions
                                                     LEFT JOIN potion_ledger ON potions.potion_id = potion_ledger.potion_id
+                                                    WHERE potions.price > 0
                                                     GROUP BY potions.potion_id
                                                 """))
         potionTable = result.fetchall()
@@ -118,9 +119,6 @@ def get_bottle_plan():
         buyPotions = []
         
         for potion in potionTable:
-            if potion.potion_id == 9:
-                continue
-                
             currPotionQuantity = potion.quantity
             potionDict = {
                         "potion_type": [potion.red_ml, potion.green_ml, potion.blue_ml, potion.dark_ml],

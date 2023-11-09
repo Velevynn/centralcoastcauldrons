@@ -1,6 +1,7 @@
 from fastapi import APIRouter
 import sqlalchemy
 from src import database as db
+import random
 
 
 router = APIRouter()
@@ -14,29 +15,61 @@ def get_catalog():
     
     with db.engine.begin() as connection:
         # Create sliding view to offer potions according to what has been sold recently
-        # sql = (
-        #     """
-        #         CREATE VIEW potions_to_sell AS
-        #             WITH recent_transactions AS (
-        #                 SELECT DISTINCT  potion_id
-        #                 FROM potion_ledger
-        #                 WHERE 
-        #             )
-        #     """
-        #     )
+        recentPotionIds = connection.execute(sqlalchemy.text(
+            """
+                WITH recent_transactions AS (
+                    SELECT potion_ledger.potion_id, potion_ledger.transaction_id
+                    FROM potion_ledger
+                    WHERE potion_ledger.change < 0
+                    ORDER BY transaction_id DESC
+                    LIMIT 50
+                )
+                SELECT DISTINCT potions.potion_id::int AS id, recent_transactions.transaction_id
+                FROM recent_transactions
+                INNER JOIN potions ON recent_transactions.potion_id = potions.potion_id
+                WHERE potions.price > 0
+                ORDER BY transaction_id DESC
+                
+            """
+            )).all()
+        
+        idList = []
+        for potion in recentPotionIds:
+            if potion.id not in idList and len(idList) < 3:
+                idList.append((potion.id))
+
+        print(idList)
+
         result = connection.execute(sqlalchemy.text(
                                                 """
                                                     SELECT potions.potion_id, item_sku, potions.name, red_ml, green_ml, blue_ml, dark_ml, price, COALESCE(SUM(change), 0)::int AS quantity
                                                     FROM potions
                                                     LEFT JOIN potion_ledger ON potions.potion_id = potion_ledger.potion_id
+                                                    WHERE potions.price > 0
                                                     GROUP BY potions.potion_id
                                                 """))
         
         potionTable = result.all()
-        potionCatalog = []
         
+        potionCatalog = []
+            
         for potion in potionTable:
-            if potion.potion_id >= 12 or len(potionCatalog) == 6:
+            if potion.potion_id in idList:
+                if potion.quantity > 0:
+                    potionCatalog.append(
+                    {
+                        'sku': potion.item_sku,
+                        'name': potion.name,
+                        'quantity': potion.quantity,
+                        'price': potion.price,
+                        'potion_type': [potion.red_ml, potion.green_ml, potion.blue_ml, potion.dark_ml]
+                    }
+                )
+        
+        random.shuffle(potionTable)
+    
+        for potion in potionTable:
+            if len(potionCatalog) == 6 or potion.potion_id in idList:
                 continue
             if potion.quantity > 0:
                 potionCatalog.append(
@@ -50,34 +83,3 @@ def get_catalog():
                 )
                 
         return potionCatalog
-                
-    
-    # with db.engine.begin() as connection:
-    #     currPotions = connection.execute(sqlalchemy.text("SELECT num_red_potions, num_green_potions, num_blue_potions, num_dark_potions FROM global_inventory"))
-    #     first_row = currPotions.first()
-        
-    #     redPotions = first_row.num_red_potions
-    #     greenPotions = first_row.num_green_potions
-    #     bluePotions = first_row.num_blue_potions
-    #     darkPotions = first_row.num_dark_potions
-
-    # potionTypes = {}
-    # potionTypes['red'] = {'sku':'RED_POTION_0', 'name': 'red potion', 'quantity': redPotions // 2, 'price': 30, 'potion_type': [100, 0, 0, 0]}
-    # potionTypes['green'] = {'sku': 'GREEN_POTION_0', 'name': 'green_potion', 'quantity': greenPotions // 2, 'price': 30, 'potion_type': [0, 100, 0, 0]}
-    # potionTypes['blue'] = {'sku': 'BLUE_POTION_0', 'name': 'blue_potion', 'quantity': bluePotions // 2, 'price': 40, 'potion_type': [0, 0, 100, 0]}
-    # potionTypes['dark'] = {'sku': 'DARK_POTION_0', 'name': 'dark_potion', 'quantity': darkPotions // 2, 'price': 40, 'potion_type': [0, 0, 100, 0]}
-
-    # potionCatalog = []
-    # for potion in potionTypes:
-    #     if potionTypes[potion]['quantity'] > 0:
-    #         potionCatalog.append(
-    #             potionTypes[potion]
-    #             )
-    
-            
-    #     # check each potion type that is available using database
-    #     # append to list the dictionary of each item
-
-    # # Can return a max of 20 items.
-
-    # return potionCatalog
