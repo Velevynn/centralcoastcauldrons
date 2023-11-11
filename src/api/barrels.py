@@ -102,7 +102,7 @@ def get_wholesale_purchase_plan(wholesale_catalog: list[Barrel]):
                 mlBreakpoint = 10000
         elif 'LARGE' in barrel.sku:
             largeCatalog = True
-            mlBreakpoint = 10000
+            mlBreakpoint = 20000
         if 'MINI' not in barrel.sku:
             barrelDict[barrel.sku] = barrel
                 
