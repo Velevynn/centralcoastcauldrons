@@ -89,7 +89,7 @@ def get_wholesale_purchase_plan(wholesale_catalog: list[Barrel]):
     print(wholesale_catalog)
     
     # identify which catalog is presented, and calculate prices + quantity
-    mlBreakpoint = 7500
+    mlBreakpoint = 5000
 
     mediumCatalog = False
     largeCatalog = False
@@ -98,11 +98,11 @@ def get_wholesale_purchase_plan(wholesale_catalog: list[Barrel]):
     for barrel in wholesale_catalog:
         if 'MEDIUM' in barrel.sku:
             mediumCatalog = True
-            if largeCatalog is False:
-                mlBreakpoint = 10000
+            # if largeCatalog is False:
+            #     mlBreakpoint = 10000
         elif 'LARGE' in barrel.sku:
             largeCatalog = True
-            mlBreakpoint = 10000
+            # mlBreakpoint = 20000
         if 'MINI' not in barrel.sku:
             barrelDict[barrel.sku] = barrel
                 
@@ -283,7 +283,6 @@ def get_wholesale_purchase_plan(wholesale_catalog: list[Barrel]):
                     mlDict['DARK'] += barrelDict['LARGE_DARK_BARREL'].ml_per_barrel
                     barrelDict['LARGE_DARK_BARREL'].quantity -= 1
                 
-    
     return buyBarrels
     
 # [{ "sku": "LARGE_RED_BARREL", "ml_per_barrel": 10000, "potion_type": [1, 0, 0, 0], "price": 500, "quantity": 30 },
