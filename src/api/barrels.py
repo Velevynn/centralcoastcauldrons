@@ -89,7 +89,7 @@ def get_wholesale_purchase_plan(wholesale_catalog: list[Barrel]):
     print(wholesale_catalog)
     
     # identify which catalog is presented, and calculate prices + quantity
-    mlBreakpoint = 5000
+    mlBreakpoint = 0
 
     mediumCatalog = False
     largeCatalog = False
